@@ -153,6 +153,50 @@
     "siivous": "Siivous",
     "muu": "Muut"
   },
+  "marketplace": {
+    "title": "Kirpputori",
+    "description": "Taloyhtiön asukkaiden kirpputori",
+    "sell": "Myy",
+    "search": "Hae tuotetta...",
+    "total": "tuotetta",
+    "noResults": "Ei hakutuloksia",
+    "price": "Hinta",
+    "free": "Ilmainen",
+    "condition": "Kunto",
+    "seller": "Myyjä",
+    "apartment": "Huoneisto",
+    "publishedAt": "Julkaistu",
+    "backToList": "Takaisin kirpputorille",
+    "contact": "Ota yhteyttä",
+    "createTitle": "Myy tuote",
+    "createDescription": "Lisää uusi tuote kirpputorille",
+    "itemTitle": "Otsikko",
+    "itemDescription": "Kuvaus",
+    "itemPrice": "Hinta (€)",
+    "itemCategory": "Kategoria",
+    "itemCondition": "Kunto",
+    "submit": "Julkaise",
+    "pricePlaceholder": "0"
+  },
+  "marketplaceCategories": {
+    "huonekalu": "Huonekalu",
+    "elektroniikka": "Elektroniikka",
+    "vaatteet": "Vaatteet",
+    "urheilu": "Urheilu",
+    "kirjat": "Kirjat",
+    "muu": "Muu"
+  },
+  "itemConditions": {
+    "uusi": "Uusi",
+    "hyva": "Hyvä",
+    "kohtalainen": "Kohtalainen",
+    "tyydyttava": "Tyydyttävä"
+  },
+  "itemStatuses": {
+    "available": "Myynnissä",
+    "sold": "Myyty",
+    "reserved": "Varattu"
+  },
   "categories": {
     "sauna": "Sauna",
     "pesutupa": "Pesutupa",

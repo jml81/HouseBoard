@@ -7,3 +7,4 @@ export { meetings } from './meetings';
 export { boardMembers } from './board-members';
 export { apartments } from './apartments';
 export { contacts } from './contacts';
+export { marketplaceItems } from './marketplace-items';

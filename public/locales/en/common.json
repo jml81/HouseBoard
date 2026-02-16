@@ -153,6 +153,50 @@
     "siivous": "Cleaning",
     "muu": "Other"
   },
+  "marketplace": {
+    "title": "Marketplace",
+    "description": "Residents' marketplace",
+    "sell": "Sell",
+    "search": "Search items...",
+    "total": "items",
+    "noResults": "No results found",
+    "price": "Price",
+    "free": "Free",
+    "condition": "Condition",
+    "seller": "Seller",
+    "apartment": "Apartment",
+    "publishedAt": "Published",
+    "backToList": "Back to marketplace",
+    "contact": "Contact seller",
+    "createTitle": "Sell an item",
+    "createDescription": "Add a new item to the marketplace",
+    "itemTitle": "Title",
+    "itemDescription": "Description",
+    "itemPrice": "Price (€)",
+    "itemCategory": "Category",
+    "itemCondition": "Condition",
+    "submit": "Publish",
+    "pricePlaceholder": "0"
+  },
+  "marketplaceCategories": {
+    "huonekalu": "Furniture",
+    "elektroniikka": "Electronics",
+    "vaatteet": "Clothing",
+    "urheilu": "Sports",
+    "kirjat": "Books",
+    "muu": "Other"
+  },
+  "itemConditions": {
+    "uusi": "New",
+    "hyva": "Good",
+    "kohtalainen": "Fair",
+    "tyydyttava": "Acceptable"
+  },
+  "itemStatuses": {
+    "available": "Available",
+    "sold": "Sold",
+    "reserved": "Reserved"
+  },
   "categories": {
     "sauna": "Sauna",
     "pesutupa": "Laundry room",

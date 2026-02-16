@@ -9,3 +9,10 @@ export type { Meeting, MeetingType, MeetingStatus, MeetingDocument } from './mee
 export type { BoardMember, BoardRole } from './board-member';
 export type { Apartment, ApartmentType } from './apartment';
 export type { Contact, ContactRole } from './contact';
+export type {
+  MarketplaceItem,
+  MarketplaceCategory,
+  ItemCondition,
+  ItemStatus,
+  MarketplaceSeller,
+} from './marketplace-item';
