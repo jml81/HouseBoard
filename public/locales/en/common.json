@@ -1,0 +1,41 @@
+{
+  "app": {
+    "name": "HouseBoard",
+    "slogan": "All your housing association matters at your fingertips!"
+  },
+  "nav": {
+    "home": "Home",
+    "calendar": "Calendar",
+    "announcements": "Announcements",
+    "events": "Events",
+    "materials": "Materials",
+    "marketplace": "Marketplace",
+    "more": "More"
+  },
+  "nav_plus": {
+    "title": "HouseBoard+",
+    "meetings": "Meetings",
+    "board": "Board",
+    "apartments": "Apartments",
+    "contacts": "Contacts"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Try again",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "noResults": "No results",
+    "comingSoon": "Coming soon",
+    "comingSoonDescription": "This feature is still under development."
+  },
+  "language": {
+    "fi": "Suomi",
+    "en": "English",
+    "switch": "Switch language"
+  }
+}

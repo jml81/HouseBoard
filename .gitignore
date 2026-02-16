@@ -32,6 +32,9 @@ coverage/
 playwright-report/
 test-results/
 
+# Generated
+src/route-tree.gen.ts
+
 # Logs
 *.log
 npm-debug.log*

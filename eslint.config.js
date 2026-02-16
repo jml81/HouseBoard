@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist/', 'node_modules/', '.wrangler/', '*.config.js', '*.config.ts'] },
+  { ignores: ['dist/', 'node_modules/', '.wrangler/', '*.config.js', '*.config.ts', 'src/route-tree.gen.ts'] },
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -34,6 +34,20 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/consistent-type-imports': 'error',
       'no-console': 'warn',
+    },
+  },
+  // shadcn/ui components are generated code — relax react-refresh rule
+  {
+    files: ['src/components/ui/**/*.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  // Test utilities can export non-components
+  {
+    files: ['src/test-utils.tsx', 'src/**/*.test.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
     },
   },
 );

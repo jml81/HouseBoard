@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="64" fill="#3D3D3D"/>
+  <g transform="translate(116, 96)">
+    <!-- Left building -->
+    <rect x="0" y="96" width="64" height="224" rx="4" fill="#D4A843"/>
+    <rect x="12" y="116" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="38" y="116" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="12" y="150" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="38" y="150" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="12" y="184" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="38" y="184" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="12" y="218" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="38" y="218" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="12" y="252" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="38" y="252" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="12" y="286" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="38" y="286" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <!-- Center building (tallest) -->
+    <rect x="80" y="0" width="80" height="320" rx="4" fill="#D4A843"/>
+    <rect x="96" y="20" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="128" y="20" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="96" y="56" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="128" y="56" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="96" y="92" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="128" y="92" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="96" y="128" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="128" y="128" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="96" y="164" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="128" y="164" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="96" y="200" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="128" y="200" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="96" y="236" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="128" y="236" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="96" y="272" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <rect x="128" y="272" width="16" height="20" rx="2" fill="#3D3D3D"/>
+    <!-- Right building -->
+    <rect x="176" y="56" width="72" height="264" rx="4" fill="#D4A843" opacity="0.85"/>
+    <rect x="190" y="76" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="220" y="76" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="190" y="110" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="220" y="110" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="190" y="144" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="220" y="144" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="190" y="178" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="220" y="178" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="190" y="212" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="220" y="212" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="190" y="246" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="220" y="246" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="190" y="280" width="14" height="18" rx="2" fill="#3D3D3D"/>
+    <rect x="220" y="280" width="14" height="18" rx="2" fill="#3D3D3D"/>
+  </g>
+</svg>

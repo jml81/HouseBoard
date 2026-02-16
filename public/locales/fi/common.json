@@ -1,0 +1,41 @@
+{
+  "app": {
+    "name": "HouseBoard",
+    "slogan": "Kaikki taloyhtiösi asiat kätesi ulottuvilla!"
+  },
+  "nav": {
+    "home": "Koti",
+    "calendar": "Kalenteri",
+    "announcements": "Tiedotteet",
+    "events": "Tapahtumat",
+    "materials": "Materiaalit",
+    "marketplace": "Kirpputori",
+    "more": "Lisää"
+  },
+  "nav_plus": {
+    "title": "HouseBoard+",
+    "meetings": "Kokoukset",
+    "board": "Hallitus",
+    "apartments": "Huoneistot",
+    "contacts": "Yhteystiedot"
+  },
+  "common": {
+    "loading": "Ladataan...",
+    "error": "Tapahtui virhe",
+    "retry": "Yritä uudelleen",
+    "back": "Takaisin",
+    "save": "Tallenna",
+    "cancel": "Peruuta",
+    "delete": "Poista",
+    "edit": "Muokkaa",
+    "search": "Hae",
+    "noResults": "Ei tuloksia",
+    "comingSoon": "Tulossa pian",
+    "comingSoonDescription": "Tämä ominaisuus on vielä kehityksessä."
+  },
+  "language": {
+    "fi": "Suomi",
+    "en": "English",
+    "switch": "Vaihda kieli"
+  }
+}
