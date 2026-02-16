@@ -1,0 +1,25 @@
+# Cloudflare Pages configuration
+
+name = "houseboard"
+compatibility_date = "2026-01-01"
+pages_build_output_dir = "dist"
+
+# Uncomment and configure as needed:
+
+# [vars]
+# API_BASE_URL = "https://api.example.com"
+
+# [[kv_namespaces]]
+# binding = "KV"
+# id = ""
+# preview_id = ""
+
+# [[r2_buckets]]
+# binding = "BUCKET"
+# bucket_name = ""
+# preview_bucket_name = ""
+
+# [[d1_databases]]
+# binding = "DB"
+# database_name = ""
+# database_id = ""
