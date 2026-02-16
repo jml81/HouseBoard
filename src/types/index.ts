@@ -4,3 +4,8 @@ export type { Announcement, AnnouncementCategory } from './announcement';
 export type { HousingEvent, EventStatus } from './event';
 export type { Material, MaterialCategory, FileType } from './material';
 export type { Building } from './building';
+export type { User, UserRole } from './auth';
+export type { Meeting, MeetingType, MeetingStatus, MeetingDocument } from './meeting';
+export type { BoardMember, BoardRole } from './board-member';
+export type { Apartment, ApartmentType } from './apartment';
+export type { Contact, ContactRole } from './contact';

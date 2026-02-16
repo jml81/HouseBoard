@@ -44,6 +44,11 @@
     "en": "English",
     "switch": "Switch language"
   },
+  "auth": {
+    "managerToggle": "Manager mode",
+    "managerModeOn": "Manager mode on",
+    "managerModeOff": "Manager mode off"
+  },
   "dashboard": {
     "welcome": "Welcome!",
     "building": "Building",
@@ -93,6 +98,60 @@
     "fileSize": "Size",
     "updated": "Updated",
     "noMaterials": "No materials"
+  },
+  "meetings": {
+    "title": "Meetings",
+    "description": "Housing association meetings and minutes",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "documents": "Documents",
+    "noUpcoming": "No upcoming meetings",
+    "noPast": "No past meetings",
+    "showDocuments": "Show documents",
+    "hideDocuments": "Hide documents"
+  },
+  "board": {
+    "title": "Board",
+    "description": "Housing association board members",
+    "term": "Term",
+    "noMembers": "No board members"
+  },
+  "apartments": {
+    "title": "Apartments",
+    "description": "Housing association apartment registry",
+    "search": "Search apartment or resident...",
+    "allStaircases": "All",
+    "staircase": "Staircase",
+    "number": "Apartment",
+    "type": "Type",
+    "area": "Area",
+    "shares": "Shares",
+    "resident": "Resident",
+    "total": "total",
+    "noResults": "No results"
+  },
+  "contacts": {
+    "title": "Contacts",
+    "description": "Important housing association contacts",
+    "noContacts": "No contacts"
+  },
+  "meetingTypes": {
+    "yhtiokokous": "General meeting",
+    "ylimaarainen-yhtiokokous": "Extra general meeting",
+    "hallituksen-kokous": "Board meeting"
+  },
+  "boardRoles": {
+    "puheenjohtaja": "Chair",
+    "varapuheenjohtaja": "Vice chair",
+    "jasen": "Member",
+    "varajasen": "Deputy member"
+  },
+  "contactRoles": {
+    "isannoitsija": "Property manager",
+    "huolto": "Maintenance",
+    "hallitus": "Board",
+    "siivous": "Cleaning",
+    "muu": "Other"
   },
   "categories": {
     "sauna": "Sauna",

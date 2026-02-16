@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Bell, Globe, Menu } from 'lucide-react';
+import { Bell, Globe, Menu, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Logo } from '@/components/brand/logo';
@@ -10,12 +10,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { useUiStore } from '@/stores/ui-store';
+import { useAuthStore } from '@/stores/auth-store';
 import { i18n } from '@/i18n/config';
+import { cn } from '@/lib/utils';
 
 export function Header(): React.JSX.Element {
   const { t } = useTranslation();
   const toggleSidebar = useUiStore((s) => s.toggleSidebar);
+  const isManager = useAuthStore((s) => s.isManager);
+  const toggleManagerMode = useAuthStore((s) => s.toggleManagerMode);
 
   const handleLanguageChange = (lng: 'fi' | 'en'): void => {
     void i18n.changeLanguage(lng);
@@ -37,6 +42,24 @@ export function Header(): React.JSX.Element {
 
       {/* Right side actions */}
       <div className="ml-auto flex items-center gap-1 px-4">
+        {/* Manager mode toggle */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleManagerMode}
+              aria-label={t('auth.managerToggle')}
+              className={cn(isManager && 'text-hbplus-accent')}
+            >
+              <Shield className="size-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {isManager ? t('auth.managerModeOn') : t('auth.managerModeOff')}
+          </TooltipContent>
+        </Tooltip>
+
         {/* Language switcher */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

@@ -15,6 +15,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/brand/logo';
 import { Separator } from '@/components/ui/separator';
+import { useAuthStore } from '@/stores/auth-store';
 
 interface NavItem {
   to: string;
@@ -41,12 +42,14 @@ const plusNavItems: NavItem[] = [
 export function Sidebar(): React.JSX.Element {
   const { t } = useTranslation();
   const location = useLocation();
+  const isManager = useAuthStore((s) => s.isManager);
+  const isPlus = location.pathname.startsWith('/plus');
 
   return (
     <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar md:flex md:flex-col">
       <div className="flex h-16 items-center px-6">
         <Link to="/">
-          <Logo size="md" />
+          <Logo size="md" variant={isPlus ? 'plus' : 'default'} />
         </Link>
       </div>
 
@@ -67,14 +70,24 @@ export function Sidebar(): React.JSX.Element {
           />
         ))}
 
-        <Separator className="my-3" />
+        {isManager && (
+          <>
+            <Separator className="my-3" />
 
-        <div className="mb-1 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          HouseBoard+
-        </div>
-        {plusNavItems.map((item) => (
-          <NavLink key={item.to} item={item} isActive={location.pathname === item.to} t={t} />
-        ))}
+            <div className="mb-1 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              HouseBoard+
+            </div>
+            {plusNavItems.map((item) => (
+              <NavLink
+                key={item.to}
+                item={item}
+                isActive={location.pathname === item.to}
+                isPlus
+                t={t}
+              />
+            ))}
+          </>
+        )}
       </nav>
     </aside>
   );
@@ -83,10 +96,11 @@ export function Sidebar(): React.JSX.Element {
 interface NavLinkProps {
   item: NavItem;
   isActive: boolean;
+  isPlus?: boolean;
   t: (key: string) => string;
 }
 
-function NavLink({ item, isActive, t }: NavLinkProps): React.JSX.Element {
+function NavLink({ item, isActive, isPlus, t }: NavLinkProps): React.JSX.Element {
   const Icon = item.icon;
 
   return (
@@ -94,12 +108,23 @@ function NavLink({ item, isActive, t }: NavLinkProps): React.JSX.Element {
       to={item.to}
       className={cn(
         'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-        isActive
-          ? 'bg-hb-accent-light text-hb-primary'
-          : 'text-sidebar-foreground hover:bg-sidebar-accent',
+        isActive && isPlus
+          ? 'bg-hbplus-accent-light text-hb-primary'
+          : isActive
+            ? 'bg-hb-accent-light text-hb-primary'
+            : 'text-sidebar-foreground hover:bg-sidebar-accent',
       )}
     >
-      <Icon className={cn('size-5', isActive ? 'text-hb-accent' : 'text-muted-foreground')} />
+      <Icon
+        className={cn(
+          'size-5',
+          isActive && isPlus
+            ? 'text-hbplus-accent'
+            : isActive
+              ? 'text-hb-accent'
+              : 'text-muted-foreground',
+        )}
+      />
       {t(item.labelKey)}
     </Link>
   );

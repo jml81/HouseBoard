@@ -3,3 +3,7 @@ export { bookings } from './bookings';
 export { announcements } from './announcements';
 export { events } from './events';
 export { materials } from './materials';
+export { meetings } from './meetings';
+export { boardMembers } from './board-members';
+export { apartments } from './apartments';
+export { contacts } from './contacts';

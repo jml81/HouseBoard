@@ -1,8 +1,13 @@
 import { screen, waitFor, within } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { renderWithRouter } from '@/test-utils';
+import { useAuthStore } from '@/stores/auth-store';
 
 describe('Sidebar', () => {
+  beforeEach(() => {
+    useAuthStore.setState({ isManager: false });
+  });
+
   it('renders HouseBoard navigation links', async () => {
     renderWithRouter('/kalenteri');
 
@@ -19,7 +24,20 @@ describe('Sidebar', () => {
     expect(within(sidebar).getByText('Kirpputori')).toBeInTheDocument();
   });
 
-  it('renders HouseBoard+ navigation links', async () => {
+  it('hides HouseBoard+ when not manager', async () => {
+    renderWithRouter('/kalenteri');
+
+    await waitFor(() => {
+      expect(screen.getByRole('complementary')).toBeInTheDocument();
+    });
+
+    const sidebar = screen.getByRole('complementary');
+    expect(within(sidebar).queryByText('HouseBoard+')).not.toBeInTheDocument();
+    expect(within(sidebar).queryByText('Kokoukset')).not.toBeInTheDocument();
+  });
+
+  it('renders HouseBoard+ navigation links when manager', async () => {
+    useAuthStore.setState({ isManager: true });
     renderWithRouter('/kalenteri');
 
     await waitFor(() => {
@@ -33,7 +51,8 @@ describe('Sidebar', () => {
     expect(within(sidebar).getByText('Yhteystiedot')).toBeInTheDocument();
   });
 
-  it('renders section headers', async () => {
+  it('renders section headers when manager', async () => {
+    useAuthStore.setState({ isManager: true });
     renderWithRouter('/kalenteri');
 
     await waitFor(() => {

@@ -44,6 +44,11 @@
     "en": "English",
     "switch": "Vaihda kieli"
   },
+  "auth": {
+    "managerToggle": "Isännöitsijätila",
+    "managerModeOn": "Isännöitsijätila päällä",
+    "managerModeOff": "Isännöitsijätila pois"
+  },
   "dashboard": {
     "welcome": "Tervetuloa!",
     "building": "Taloyhtiö",
@@ -93,6 +98,60 @@
     "fileSize": "Koko",
     "updated": "Päivitetty",
     "noMaterials": "Ei materiaaleja"
+  },
+  "meetings": {
+    "title": "Kokoukset",
+    "description": "Taloyhtiön kokoukset ja pöytäkirjat",
+    "upcoming": "Tulevat",
+    "past": "Menneet",
+    "documents": "Asiakirjat",
+    "noUpcoming": "Ei tulevia kokouksia",
+    "noPast": "Ei menneitä kokouksia",
+    "showDocuments": "Näytä asiakirjat",
+    "hideDocuments": "Piilota asiakirjat"
+  },
+  "board": {
+    "title": "Hallitus",
+    "description": "Taloyhtiön hallituksen jäsenet",
+    "term": "Toimikausi",
+    "noMembers": "Ei hallituksen jäseniä"
+  },
+  "apartments": {
+    "title": "Huoneistot",
+    "description": "Taloyhtiön huoneistoluettelo",
+    "search": "Hae huoneistoa tai asukasta...",
+    "allStaircases": "Kaikki",
+    "staircase": "Rappukäytävä",
+    "number": "Huoneisto",
+    "type": "Tyyppi",
+    "area": "Pinta-ala",
+    "shares": "Osakkeet",
+    "resident": "Asukas",
+    "total": "yhteensä",
+    "noResults": "Ei hakutuloksia"
+  },
+  "contacts": {
+    "title": "Yhteystiedot",
+    "description": "Taloyhtiön tärkeät yhteystiedot",
+    "noContacts": "Ei yhteystietoja"
+  },
+  "meetingTypes": {
+    "yhtiokokous": "Yhtiökokous",
+    "ylimaarainen-yhtiokokous": "Ylim. yhtiökokous",
+    "hallituksen-kokous": "Hallituksen kokous"
+  },
+  "boardRoles": {
+    "puheenjohtaja": "Puheenjohtaja",
+    "varapuheenjohtaja": "Varapuheenjohtaja",
+    "jasen": "Jäsen",
+    "varajasen": "Varajäsen"
+  },
+  "contactRoles": {
+    "isannoitsija": "Isännöitsijä",
+    "huolto": "Huolto",
+    "hallitus": "Hallitus",
+    "siivous": "Siivous",
+    "muu": "Muut"
   },
   "categories": {
     "sauna": "Sauna",
