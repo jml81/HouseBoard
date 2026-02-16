@@ -1,6 +1,7 @@
 import { Link, useLocation } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
+  LayoutDashboard,
   Calendar,
   Megaphone,
   PartyPopper,
@@ -22,6 +23,7 @@ interface NavItem {
 }
 
 const mainNavItems: NavItem[] = [
+  { to: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard },
   { to: '/kalenteri', labelKey: 'nav.calendar', icon: Calendar },
   { to: '/tiedotteet', labelKey: 'nav.announcements', icon: Megaphone },
   { to: '/tapahtumat', labelKey: 'nav.events', icon: PartyPopper },
@@ -55,7 +57,14 @@ export function Sidebar(): React.JSX.Element {
           HouseBoard
         </div>
         {mainNavItems.map((item) => (
-          <NavLink key={item.to} item={item} isActive={location.pathname === item.to} t={t} />
+          <NavLink
+            key={item.to}
+            item={item}
+            isActive={
+              item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to)
+            }
+            t={t}
+          />
         ))}
 
         <Separator className="my-3" />

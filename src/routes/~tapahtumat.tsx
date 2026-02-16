@@ -1,10 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ComingSoon } from '@/components/common/coming-soon';
+import { EventsPage } from '@/components/events/events-page';
 
 export const Route = createFileRoute('/tapahtumat')({
-  component: TapahtumatPage,
+  component: EventsPage,
 });
-
-function TapahtumatPage(): React.JSX.Element {
-  return <ComingSoon titleKey="nav.events" />;
-}

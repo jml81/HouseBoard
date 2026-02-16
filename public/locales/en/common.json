@@ -5,6 +5,7 @@
   },
   "nav": {
     "home": "Home",
+    "dashboard": "Home",
     "calendar": "Calendar",
     "announcements": "Announcements",
     "events": "Events",
@@ -31,11 +32,81 @@
     "search": "Search",
     "noResults": "No results",
     "comingSoon": "Coming soon",
-    "comingSoonDescription": "This feature is still under development."
+    "comingSoonDescription": "This feature is still under development.",
+    "showAll": "Show all",
+    "new": "New",
+    "readMore": "Read more",
+    "download": "Download",
+    "all": "All"
   },
   "language": {
     "fi": "Suomi",
     "en": "English",
     "switch": "Switch language"
+  },
+  "dashboard": {
+    "welcome": "Welcome!",
+    "building": "Building",
+    "upcomingBookings": "Upcoming bookings",
+    "latestAnnouncements": "Latest announcements",
+    "upcomingEvents": "Upcoming events",
+    "recentMaterials": "Recent materials",
+    "noBookings": "No upcoming bookings",
+    "noAnnouncements": "No announcements",
+    "noEvents": "No upcoming events",
+    "noMaterials": "No materials"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "description": "Book sauna, laundry room or common room",
+    "monthView": "Month",
+    "listView": "List",
+    "filter": "Filter",
+    "time": "Time",
+    "location": "Location",
+    "booker": "Booked by",
+    "apartment": "Apartment",
+    "noBookings": "No bookings"
+  },
+  "announcements": {
+    "title": "Announcements",
+    "description": "Housing association announcements and notices",
+    "readMore": "Read more",
+    "publishedAt": "Published",
+    "author": "Author",
+    "backToList": "Back to announcements"
+  },
+  "events": {
+    "title": "Events",
+    "description": "Housing association events and meetings",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "interested": "interested",
+    "organizer": "Organizer",
+    "noUpcoming": "No upcoming events",
+    "noPast": "No past events"
+  },
+  "materials": {
+    "title": "Materials",
+    "description": "Housing association documents and files",
+    "download": "Download",
+    "fileSize": "Size",
+    "updated": "Updated",
+    "noMaterials": "No materials"
+  },
+  "categories": {
+    "sauna": "Sauna",
+    "pesutupa": "Laundry room",
+    "kerhohuone": "Common room",
+    "talkoot": "Working bee",
+    "yleinen": "General",
+    "huolto": "Maintenance",
+    "remontti": "Renovation",
+    "vesi-sahko": "Water & electricity",
+    "saannot": "Rules",
+    "kokoukset": "Meetings",
+    "talous": "Finance",
+    "kunnossapito": "Maintenance",
+    "muut": "Other"
   }
 }

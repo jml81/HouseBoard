@@ -5,6 +5,7 @@
   },
   "nav": {
     "home": "Koti",
+    "dashboard": "Koti",
     "calendar": "Kalenteri",
     "announcements": "Tiedotteet",
     "events": "Tapahtumat",
@@ -31,11 +32,81 @@
     "search": "Hae",
     "noResults": "Ei tuloksia",
     "comingSoon": "Tulossa pian",
-    "comingSoonDescription": "Tämä ominaisuus on vielä kehityksessä."
+    "comingSoonDescription": "Tämä ominaisuus on vielä kehityksessä.",
+    "showAll": "Näytä kaikki",
+    "new": "Uusi",
+    "readMore": "Lue lisää",
+    "download": "Lataa",
+    "all": "Kaikki"
   },
   "language": {
     "fi": "Suomi",
     "en": "English",
     "switch": "Vaihda kieli"
+  },
+  "dashboard": {
+    "welcome": "Tervetuloa!",
+    "building": "Taloyhtiö",
+    "upcomingBookings": "Tulevat varaukset",
+    "latestAnnouncements": "Viimeisimmät tiedotteet",
+    "upcomingEvents": "Tulevat tapahtumat",
+    "recentMaterials": "Uusimmat materiaalit",
+    "noBookings": "Ei tulevia varauksia",
+    "noAnnouncements": "Ei tiedotteita",
+    "noEvents": "Ei tulevia tapahtumia",
+    "noMaterials": "Ei materiaaleja"
+  },
+  "calendar": {
+    "title": "Kalenteri",
+    "description": "Varaa sauna, pesutupa tai kerhohuone",
+    "monthView": "Kuukausi",
+    "listView": "Lista",
+    "filter": "Suodata",
+    "time": "Aika",
+    "location": "Paikka",
+    "booker": "Varaaja",
+    "apartment": "Huoneisto",
+    "noBookings": "Ei varauksia"
+  },
+  "announcements": {
+    "title": "Tiedotteet",
+    "description": "Taloyhtiön tiedotteet ja ilmoitukset",
+    "readMore": "Lue lisää",
+    "publishedAt": "Julkaistu",
+    "author": "Kirjoittaja",
+    "backToList": "Takaisin tiedotteisiin"
+  },
+  "events": {
+    "title": "Tapahtumat",
+    "description": "Taloyhtiön tapahtumat ja kokoukset",
+    "upcoming": "Tulevat",
+    "past": "Menneet",
+    "interested": "kiinnostunutta",
+    "organizer": "Järjestäjä",
+    "noUpcoming": "Ei tulevia tapahtumia",
+    "noPast": "Ei menneitä tapahtumia"
+  },
+  "materials": {
+    "title": "Materiaalit",
+    "description": "Taloyhtiön asiakirjat ja dokumentit",
+    "download": "Lataa",
+    "fileSize": "Koko",
+    "updated": "Päivitetty",
+    "noMaterials": "Ei materiaaleja"
+  },
+  "categories": {
+    "sauna": "Sauna",
+    "pesutupa": "Pesutupa",
+    "kerhohuone": "Kerhohuone",
+    "talkoot": "Talkoot",
+    "yleinen": "Yleinen",
+    "huolto": "Huolto",
+    "remontti": "Remontti",
+    "vesi-sahko": "Vesi & sähkö",
+    "saannot": "Säännöt",
+    "kokoukset": "Kokoukset",
+    "talous": "Talous",
+    "kunnossapito": "Kunnossapito",
+    "muut": "Muut"
   }
 }

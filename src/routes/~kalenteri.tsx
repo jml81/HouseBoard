@@ -1,10 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ComingSoon } from '@/components/common/coming-soon';
+import { CalendarPage } from '@/components/calendar/calendar-page';
 
 export const Route = createFileRoute('/kalenteri')({
-  component: KalenteriPage,
+  component: CalendarPage,
 });
-
-function KalenteriPage(): React.JSX.Element {
-  return <ComingSoon titleKey="nav.calendar" />;
-}

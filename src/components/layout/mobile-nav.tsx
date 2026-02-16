@@ -10,7 +10,7 @@ interface MobileNavItem {
 }
 
 const mobileNavItems: MobileNavItem[] = [
-  { to: '/kalenteri', labelKey: 'nav.home', icon: Home },
+  { to: '/', labelKey: 'nav.dashboard', icon: Home },
   { to: '/kalenteri', labelKey: 'nav.calendar', icon: Calendar },
   { to: '/tiedotteet', labelKey: 'nav.announcements', icon: Megaphone },
   { to: '/tapahtumat', labelKey: 'nav.events', icon: PartyPopper },
