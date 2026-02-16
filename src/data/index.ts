@@ -8,3 +8,4 @@ export { boardMembers } from './board-members';
 export { apartments } from './apartments';
 export { contacts } from './contacts';
 export { marketplaceItems } from './marketplace-items';
+export { apartmentPayments } from './apartment-payments';

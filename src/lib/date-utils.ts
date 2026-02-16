@@ -40,3 +40,12 @@ export function getDaysForCalendar(month: Date): Date[] {
 export function getWeekdayHeaders(): string[] {
   return ['ma', 'ti', 'ke', 'to', 'pe', 'la', 'su'];
 }
+
+export function formatFullDate(date: Date): string {
+  const formatted = format(date, 'EEEE d. MMMM yyyy', { locale: fi });
+  return formatted.charAt(0).toLowerCase() + formatted.slice(1);
+}
+
+export function formatClock(date: Date): string {
+  return format(date, 'HH:mm');
+}

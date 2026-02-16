@@ -128,7 +128,30 @@
     "shares": "Shares",
     "resident": "Resident",
     "total": "total",
-    "noResults": "No results"
+    "noResults": "No results",
+    "listView": "List",
+    "paymentsView": "Payments",
+    "payments": {
+      "title": "Payment information",
+      "monthlyCharge": "Monthly charge",
+      "status": "Status",
+      "lastPayment": "Last payment",
+      "arrears": "Arrears",
+      "noArrears": "No arrears",
+      "paid": "Paid",
+      "pending": "Pending",
+      "overdue": "Overdue",
+      "breakdown": "Breakdown",
+      "hoitovastike": "Maintenance fee",
+      "rahoitusvastike": "Capital charge",
+      "vesimaksu": "Water fee",
+      "totalArrears": "Total arrears",
+      "summary": "Summary",
+      "paidCount": "Paid",
+      "pendingCount": "Pending",
+      "overdueCount": "Overdue",
+      "perMonth": "/mo"
+    }
   },
   "contacts": {
     "title": "Contacts",
@@ -196,6 +219,20 @@
     "available": "Available",
     "sold": "Sold",
     "reserved": "Reserved"
+  },
+  "display": {
+    "title": "Display mode",
+    "bookingsTitle": "Today's bookings",
+    "announcementsTitle": "Latest news",
+    "eventsTitle": "Upcoming events",
+    "buildingInfoTitle": "Building information",
+    "noBookings": "No bookings today",
+    "noAnnouncements": "No announcements",
+    "noEvents": "No upcoming events",
+    "address": "Address",
+    "apartments": "Apartments",
+    "buildYear": "Built",
+    "management": "Management"
   },
   "categories": {
     "sauna": "Sauna",

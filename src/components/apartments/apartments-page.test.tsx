@@ -61,4 +61,35 @@ describe('ApartmentsPage', () => {
     await user.type(screen.getByPlaceholderText('Hae huoneistoa tai asukasta...'), 'zzzzzzz');
     expect(screen.getByText('Ei hakutuloksia')).toBeInTheDocument();
   });
+
+  it('renders view tabs', () => {
+    renderWithProviders(<ApartmentsPage />);
+    expect(screen.getByText('Luettelo')).toBeInTheDocument();
+    expect(screen.getByText('Vastikkeet')).toBeInTheDocument();
+  });
+
+  it('switches to payment view', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<ApartmentsPage />);
+
+    await user.click(screen.getByText('Vastikkeet'));
+    expect(screen.getAllByText('Maksettu').length).toBeGreaterThan(0);
+  });
+
+  it('payment view shows monthly charges', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<ApartmentsPage />);
+
+    await user.click(screen.getByText('Vastikkeet'));
+    expect(screen.getAllByText(/€/).length).toBeGreaterThan(0);
+  });
+
+  it('payment summary shows counts', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<ApartmentsPage />);
+
+    await user.click(screen.getByText('Vastikkeet'));
+    // Summary bar should show paid/pending/overdue counts
+    expect(screen.getByText('Rästit yhteensä')).toBeInTheDocument();
+  });
 });

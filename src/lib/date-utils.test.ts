@@ -6,6 +6,8 @@ import {
   formatTime,
   getDaysForCalendar,
   getWeekdayHeaders,
+  formatFullDate,
+  formatClock,
 } from './date-utils';
 
 describe('date-utils', () => {
@@ -82,6 +84,20 @@ describe('date-utils', () => {
 
     it('returns 7 items', () => {
       expect(getWeekdayHeaders()).toHaveLength(7);
+    });
+  });
+
+  describe('formatFullDate', () => {
+    it('formats date in Finnish with weekday', () => {
+      const date = new Date(2026, 1, 16); // Monday Feb 16
+      expect(formatFullDate(date)).toBe('maanantaina 16. helmikuuta 2026');
+    });
+  });
+
+  describe('formatClock', () => {
+    it('formats time as HH:mm', () => {
+      const date = new Date(2026, 1, 16, 14, 35, 0);
+      expect(formatClock(date)).toBe('14:35');
     });
   });
 });

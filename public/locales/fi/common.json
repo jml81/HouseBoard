@@ -128,7 +128,30 @@
     "shares": "Osakkeet",
     "resident": "Asukas",
     "total": "yhteensä",
-    "noResults": "Ei hakutuloksia"
+    "noResults": "Ei hakutuloksia",
+    "listView": "Luettelo",
+    "paymentsView": "Vastikkeet",
+    "payments": {
+      "title": "Vastiketiedot",
+      "monthlyCharge": "Kuukausivastike",
+      "status": "Tila",
+      "lastPayment": "Viimeisin maksu",
+      "arrears": "Rästit",
+      "noArrears": "Ei rästejä",
+      "paid": "Maksettu",
+      "pending": "Odottaa",
+      "overdue": "Myöhässä",
+      "breakdown": "Erittely",
+      "hoitovastike": "Hoitovastike",
+      "rahoitusvastike": "Rahoitusvastike",
+      "vesimaksu": "Vesimaksu",
+      "totalArrears": "Rästit yhteensä",
+      "summary": "Yhteenveto",
+      "paidCount": "Maksettu",
+      "pendingCount": "Odottaa",
+      "overdueCount": "Myöhässä",
+      "perMonth": "/kk"
+    }
   },
   "contacts": {
     "title": "Yhteystiedot",
@@ -196,6 +219,20 @@
     "available": "Myynnissä",
     "sold": "Myyty",
     "reserved": "Varattu"
+  },
+  "display": {
+    "title": "Näyttötila",
+    "bookingsTitle": "Tämän päivän varaukset",
+    "announcementsTitle": "Ajankohtaista",
+    "eventsTitle": "Tulevat tapahtumat",
+    "buildingInfoTitle": "Taloyhtiön tiedot",
+    "noBookings": "Ei varauksia tänään",
+    "noAnnouncements": "Ei tiedotteita",
+    "noEvents": "Ei tulevia tapahtumia",
+    "address": "Osoite",
+    "apartments": "Huoneistoja",
+    "buildYear": "Rakennusvuosi",
+    "management": "Isännöinti"
   },
   "categories": {
     "sauna": "Sauna",

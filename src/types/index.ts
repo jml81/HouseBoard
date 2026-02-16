@@ -16,3 +16,5 @@ export type {
   ItemStatus,
   MarketplaceSeller,
 } from './marketplace-item';
+export type { ApartmentPayment, PaymentStatus, ChargeBreakdown } from './apartment-payment';
+export { PAYMENT_STATUS_COLORS, MONTHLY_CHARGES } from './apartment-payment';

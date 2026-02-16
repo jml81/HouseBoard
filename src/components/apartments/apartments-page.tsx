@@ -1,12 +1,15 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { apartments } from '@/data';
+import { apartments, apartmentPayments } from '@/data';
 import { PageHeader } from '@/components/common/page-header';
 import { EmptyState } from '@/components/common/empty-state';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { ApartmentTable } from './apartment-table';
+import { ApartmentPaymentRow } from './apartment-payment-row';
+import { PaymentSummaryBar } from './payment-summary-bar';
 
 const staircases = ['A', 'B', 'C'] as const;
 
@@ -34,6 +37,11 @@ export function ApartmentsPage(): React.JSX.Element {
 
     return result;
   }, [search, selectedStaircase]);
+
+  const filteredPayments = useMemo(() => {
+    const filteredIds = new Set(filtered.map((a) => a.id));
+    return apartmentPayments.filter((p) => filteredIds.has(p.apartmentId));
+  }, [filtered]);
 
   return (
     <div>
@@ -78,11 +86,43 @@ export function ApartmentsPage(): React.JSX.Element {
           {filtered.length} {t('apartments.total')}
         </p>
 
-        {filtered.length === 0 ? (
-          <EmptyState title={t('apartments.noResults')} />
-        ) : (
-          <ApartmentTable apartments={filtered} />
-        )}
+        <Tabs defaultValue="list">
+          <TabsList>
+            <TabsTrigger value="list">{t('apartments.listView')}</TabsTrigger>
+            <TabsTrigger value="payments">{t('apartments.paymentsView')}</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="list">
+            {filtered.length === 0 ? (
+              <EmptyState title={t('apartments.noResults')} />
+            ) : (
+              <ApartmentTable apartments={filtered} />
+            )}
+          </TabsContent>
+
+          <TabsContent value="payments">
+            <div className="space-y-4">
+              <PaymentSummaryBar payments={filteredPayments} />
+              {filtered.length === 0 ? (
+                <EmptyState title={t('apartments.noResults')} />
+              ) : (
+                <div className="space-y-2">
+                  {filtered.map((apartment) => {
+                    const payment = apartmentPayments.find((p) => p.apartmentId === apartment.id);
+                    if (!payment) return null;
+                    return (
+                      <ApartmentPaymentRow
+                        key={apartment.id}
+                        apartment={apartment}
+                        payment={payment}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
