@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { announcements } from '@/data';
+import { useAnnouncements } from '@/hooks/use-announcements';
 import { formatDate } from '@/lib/date-utils';
 
 export function DisplayAnnouncementsSlide(): React.JSX.Element {
   const { t } = useTranslation();
-
-  const latest = announcements.slice(0, 3);
+  const { data: announcements } = useAnnouncements();
+  const latest = announcements?.slice(0, 3) ?? [];
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-8">

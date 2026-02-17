@@ -1,7 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { announcements } from '@/data';
+import { useAnnouncement } from '@/hooks/use-announcements';
 import { AnnouncementDetail } from '@/components/announcements/announcement-detail';
 import { EmptyState } from '@/components/common/empty-state';
+import { LoadingSpinner } from '@/components/common/loading-spinner';
 
 export const Route = createFileRoute('/tiedotteet/$id')({
   component: AnnouncementDetailRoute,
@@ -9,9 +10,13 @@ export const Route = createFileRoute('/tiedotteet/$id')({
 
 function AnnouncementDetailRoute(): React.JSX.Element {
   const { id } = Route.useParams();
-  const announcement = announcements.find((a) => a.id === id);
+  const { data: announcement, isLoading, error } = useAnnouncement(id);
 
-  if (!announcement) {
+  if (isLoading) {
+    return <LoadingSpinner className="py-12" />;
+  }
+
+  if (error ?? !announcement) {
     return <EmptyState title="Tiedotetta ei löytynyt" />;
   }
 

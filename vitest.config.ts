@@ -12,7 +12,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test-setup.ts'],
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
-    exclude: ['node_modules', 'dist', '.wrangler', 'e2e'],
+    exclude: ['node_modules', 'dist', '.wrangler', 'e2e', 'functions'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],

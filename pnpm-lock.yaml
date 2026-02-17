@@ -11,6 +11,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.1.18(vite@7.3.1(@types/node@24.10.13)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
+      '@tanstack/react-query':
+        specifier: ^5.90.21
+        version: 5.90.21(react@19.2.4)
       '@tanstack/react-router':
         specifier: ^1.160.0
         version: 1.160.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -23,6 +26,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      hono:
+        specifier: ^4.11.9
+        version: 4.11.9
       i18next:
         specifier: ^25.8.10
         version: 25.8.10(typescript@5.9.3)
@@ -57,6 +63,9 @@ importers:
         specifier: ^5.0.11
         version: 5.0.11(@types/react@19.2.14)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
     devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20260217.0
+        version: 4.20260217.0
       '@eslint/js':
         specifier: ^9.39.1
         version: 9.39.2
@@ -90,6 +99,9 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^4.0.18
         version: 4.0.18(vitest@4.0.18(@types/node@24.10.13)(jiti@2.6.1)(jsdom@28.1.0)(lightningcss@1.30.2)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
+      esbuild:
+        specifier: ^0.27.3
+        version: 0.27.3
       eslint:
         specifier: ^9.39.1
         version: 9.39.2(jiti@2.6.1)
@@ -682,6 +694,9 @@ packages:
   '@bramus/specificity@2.4.2':
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
     hasBin: true
+
+  '@cloudflare/workers-types@4.20260217.0':
+    resolution: {integrity: sha512-R5s8h/zj91g6HSB/qndpXGS5Xc8t8Ik3BwY6qwe7XXV6r3Gey1gdthFSK4A2IrPQEmTsc7wEXbs9KpBLNttlqg==}
 
   '@csstools/color-helpers@6.0.1':
     resolution: {integrity: sha512-NmXRccUJMk2AWA5A7e5a//3bCIMyOu2hAtdRYrhPPHjDxINuCwX1w6rnIZ4xjLcp0ayv6h8Pc3X0eJUGiAAXHQ==}
@@ -1955,6 +1970,14 @@ packages:
     resolution: {integrity: sha512-xyIfof8eHBuub1CkBnbKNKQXeRZC4dClhmzePHVOEel4G7lk/dW+TQ16da7CFdeNLv6u6Owf5VoBQxoo6DFTSA==}
     engines: {node: '>=12'}
 
+  '@tanstack/query-core@5.90.20':
+    resolution: {integrity: sha512-OMD2HLpNouXEfZJWcKeVKUgQ5n+n3A2JFmBaScpNDUqSrQSjiveC7dKMe53uJUg1nDG16ttFPz2xfilz6i2uVg==}
+
+  '@tanstack/react-query@5.90.21':
+    resolution: {integrity: sha512-0Lu6y5t+tvlTJMTO7oh5NSpJfpg/5D41LlThfepTixPYkJ0sE2Jj0m0f6yYqujBwIXlId87e234+MxG3D3g7kg==}
+    peerDependencies:
+      react: ^18 || ^19
+
   '@tanstack/react-router-devtools@1.160.0':
     resolution: {integrity: sha512-VxOPac0Pwd2EWX2/SA/8CvrkEa1HG0Fc6tkvS+eQ8exg/WvS9s94M0O8DUxeSgCSMfFNWkYEmSkn2usMdfM2jw==}
     engines: {node: '>=12'}
@@ -2871,6 +2894,10 @@ packages:
 
   hermes-parser@0.25.1:
     resolution: {integrity: sha512-6pEjquH3rqaI6cYAXYPcz9MS4rY6R4ngRgrgfDshRptUZIc3lw0MCIJIGDj9++mfySOuPTHB4nrSW99BCvOPIA==}
+
+  hono@4.11.9:
+    resolution: {integrity: sha512-Eaw2YTGM6WOxA6CXbckaEvslr2Ne4NFsKrvc0v97JD5awbmeBLO5w9Ho9L9kmKonrwF9RJlW6BxT1PVv/agBHQ==}
+    engines: {node: '>=16.9.0'}
 
   html-encoding-sniffer@6.0.0:
     resolution: {integrity: sha512-CV9TW3Y3f8/wT0BRFc1/KAVQ3TUHiXmaAb6VW9vtiMFf7SLoMd1PdAc4W3KFOFETBJUb90KatHqlsZMWV+R9Gg==}
@@ -4969,6 +4996,8 @@ snapshots:
     dependencies:
       css-tree: 3.1.0
 
+  '@cloudflare/workers-types@4.20260217.0': {}
+
   '@csstools/color-helpers@6.0.1': {}
 
   '@csstools/css-calc@3.1.1(@csstools/css-parser-algorithms@4.0.0(@csstools/css-tokenizer@4.0.0))(@csstools/css-tokenizer@4.0.0)':
@@ -6124,6 +6153,13 @@ snapshots:
 
   '@tanstack/history@1.154.14': {}
 
+  '@tanstack/query-core@5.90.20': {}
+
+  '@tanstack/react-query@5.90.21(react@19.2.4)':
+    dependencies:
+      '@tanstack/query-core': 5.90.20
+      react: 19.2.4
+
   '@tanstack/react-router-devtools@1.160.0(@tanstack/react-router@1.160.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@tanstack/router-core@1.160.0)(csstype@3.2.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@tanstack/react-router': 1.160.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -7221,6 +7257,8 @@ snapshots:
   hermes-parser@0.25.1:
     dependencies:
       hermes-estree: 0.25.1
+
+  hono@4.11.9: {}
 
   html-encoding-sniffer@6.0.0:
     dependencies:

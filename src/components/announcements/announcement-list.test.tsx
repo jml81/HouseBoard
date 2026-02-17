@@ -1,9 +1,49 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithRouterContext } from '@/test-utils';
 import { AnnouncementList } from './announcement-list';
 
+const mockAnnouncements = [
+  {
+    id: 'a1',
+    title: 'Kevätsiivous 15.3.2026',
+    summary: 'Taloyhtiön kevätsiivous järjestetään lauantaina 15.3.',
+    content: 'Sisältö',
+    category: 'yleinen',
+    author: 'Hallitus',
+    publishedAt: '2026-02-28',
+    isNew: true,
+  },
+  {
+    id: 'a2',
+    title: 'Hissihuolto viikolla 11',
+    summary: 'Hissin vuosihuolto suoritetaan viikolla 11.',
+    content: 'Sisältö',
+    category: 'huolto',
+    author: 'Isännöitsijä',
+    publishedAt: '2026-02-25',
+    isNew: true,
+  },
+];
+
 describe('AnnouncementList', () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify(mockAnnouncements), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
   it('renders page header', async () => {
     await renderWithRouterContext(<AnnouncementList />);
     expect(screen.getByText('Tiedotteet')).toBeInTheDocument();
@@ -22,19 +62,19 @@ describe('AnnouncementList', () => {
 
   it('renders announcement titles', async () => {
     await renderWithRouterContext(<AnnouncementList />);
-    expect(screen.getByText('Kevätsiivous 15.3.2026')).toBeInTheDocument();
+    expect(await screen.findByText('Kevätsiivous 15.3.2026')).toBeInTheDocument();
     expect(screen.getByText('Hissihuolto viikolla 11')).toBeInTheDocument();
   });
 
   it('shows new badge for new announcements', async () => {
     await renderWithRouterContext(<AnnouncementList />);
-    const badges = screen.getAllByText('Uusi');
+    const badges = await screen.findAllByText('Uusi');
     expect(badges.length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders read more links', async () => {
     await renderWithRouterContext(<AnnouncementList />);
-    const readMoreLinks = screen.getAllByText('Lue lisää');
+    const readMoreLinks = await screen.findAllByText('Lue lisää');
     expect(readMoreLinks.length).toBeGreaterThanOrEqual(1);
   });
 });

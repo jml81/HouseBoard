@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AnnouncementCategory } from '@/types';
-import { announcements } from '@/data';
+import { useAnnouncements } from '@/hooks/use-announcements';
 import { PageHeader } from '@/components/common/page-header';
+import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AnnouncementCard } from './announcement-card';
@@ -11,11 +12,11 @@ const categories: AnnouncementCategory[] = ['yleinen', 'huolto', 'remontti', 've
 
 export function AnnouncementList(): React.JSX.Element {
   const { t } = useTranslation();
-  const [selectedCategory, setSelectedCategory] = useState<AnnouncementCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<AnnouncementCategory | undefined>(
+    undefined,
+  );
 
-  const filtered = selectedCategory
-    ? announcements.filter((a) => a.category === selectedCategory)
-    : announcements;
+  const { data: announcements, isLoading, error } = useAnnouncements(selectedCategory);
 
   return (
     <div>
@@ -24,10 +25,10 @@ export function AnnouncementList(): React.JSX.Element {
       <div className="space-y-4 p-6">
         <div className="flex flex-wrap gap-2">
           <Button
-            variant={selectedCategory === null ? 'default' : 'outline'}
+            variant={selectedCategory === undefined ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setSelectedCategory(null)}
-            className={cn(selectedCategory === null && 'bg-hb-accent hover:bg-hb-accent/90')}
+            onClick={() => setSelectedCategory(undefined)}
+            className={cn(selectedCategory === undefined && 'bg-hb-accent hover:bg-hb-accent/90')}
           >
             {t('common.all')}
           </Button>
@@ -36,7 +37,9 @@ export function AnnouncementList(): React.JSX.Element {
               key={category}
               variant={selectedCategory === category ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
+              onClick={() =>
+                setSelectedCategory(selectedCategory === category ? undefined : category)
+              }
               className={cn(selectedCategory === category && 'bg-hb-accent hover:bg-hb-accent/90')}
             >
               {t(`categories.${category}`)}
@@ -44,11 +47,17 @@ export function AnnouncementList(): React.JSX.Element {
           ))}
         </div>
 
-        <div className="space-y-4">
-          {filtered.map((announcement) => (
-            <AnnouncementCard key={announcement.id} announcement={announcement} />
-          ))}
-        </div>
+        {isLoading ? (
+          <LoadingSpinner className="py-12" />
+        ) : error ? (
+          <p className="py-12 text-center text-sm text-destructive">{t('common.error')}</p>
+        ) : (
+          <div className="space-y-4">
+            {announcements?.map((announcement) => (
+              <AnnouncementCard key={announcement.id} announcement={announcement} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

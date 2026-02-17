@@ -1,9 +1,39 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithRouterContext } from '@/test-utils';
 import { DashboardPage } from './dashboard-page';
 
+const mockAnnouncements = [
+  {
+    id: 'a1',
+    title: 'Kevätsiivous 15.3.2026',
+    summary: 'Taloyhtiön kevätsiivous',
+    content: 'Sisältö',
+    category: 'yleinen',
+    author: 'Hallitus',
+    publishedAt: '2026-02-28',
+    isNew: true,
+  },
+];
+
 describe('DashboardPage', () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify(mockAnnouncements), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
   it('renders welcome message', async () => {
     await renderWithRouterContext(<DashboardPage />);
     expect(screen.getByText('Tervetuloa!')).toBeInTheDocument();
@@ -36,6 +66,6 @@ describe('DashboardPage', () => {
 
   it('renders latest announcements', async () => {
     await renderWithRouterContext(<DashboardPage />);
-    expect(screen.getByText('Kevätsiivous 15.3.2026')).toBeInTheDocument();
+    expect(await screen.findByText('Kevätsiivous 15.3.2026')).toBeInTheDocument();
   });
 });

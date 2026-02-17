@@ -1,13 +1,15 @@
 import { Megaphone } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { announcements } from '@/data';
+import { useAnnouncements } from '@/hooks/use-announcements';
 import { formatDateShort } from '@/lib/date-utils';
 import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { SummaryCard } from './summary-card';
 
 export function LatestAnnouncementsCard(): React.JSX.Element {
   const { t } = useTranslation();
-  const latest = announcements.slice(0, 3);
+  const { data: announcements, isLoading } = useAnnouncements();
+  const latest = announcements?.slice(0, 3) ?? [];
 
   return (
     <SummaryCard
@@ -15,7 +17,9 @@ export function LatestAnnouncementsCard(): React.JSX.Element {
       titleKey="dashboard.latestAnnouncements"
       linkTo="/tiedotteet"
     >
-      {latest.length === 0 ? (
+      {isLoading ? (
+        <LoadingSpinner size="sm" />
+      ) : latest.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t('dashboard.noAnnouncements')}</p>
       ) : (
         <ul className="space-y-3">

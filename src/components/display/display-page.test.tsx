@@ -3,14 +3,38 @@ import { screen, act } from '@testing-library/react';
 import { renderWithProviders } from '@/test-utils';
 import { DisplayPage } from './display-page';
 
+const mockAnnouncements = [
+  {
+    id: 'a1',
+    title: 'Kevätsiivous 15.3.2026',
+    summary: 'Taloyhtiön kevätsiivous',
+    content: 'Sisältö',
+    category: 'yleinen',
+    author: 'Hallitus',
+    publishedAt: '2026-02-28',
+    isNew: true,
+  },
+];
+
 describe('DisplayPage', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 1, 16, 14, 35, 0));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify(mockAnnouncements), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    );
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('renders building name', () => {

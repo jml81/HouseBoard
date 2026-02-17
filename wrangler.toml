@@ -19,7 +19,7 @@ pages_build_output_dir = "dist"
 # bucket_name = ""
 # preview_bucket_name = ""
 
-# [[d1_databases]]
-# binding = "DB"
-# database_name = ""
-# database_id = ""
+[[d1_databases]]
+binding = "DB"
+database_name = "houseboard-db"
+database_id = "357ad9cf-6d66-4a9c-9fb5-2bbac9e7f2c5"

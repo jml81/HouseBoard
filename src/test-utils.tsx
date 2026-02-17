@@ -4,6 +4,7 @@ import type { RenderOptions, RenderResult } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import {
   createMemoryHistory,
@@ -274,11 +275,25 @@ void testI18n.use(initReactI18next).init({
 
 export { testI18n };
 
+function createTestQueryClient(): QueryClient {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: 0,
+      },
+    },
+  });
+}
+
 function AllProviders({ children }: { children: ReactNode }): React.JSX.Element {
+  const queryClient = createTestQueryClient();
   return (
-    <I18nextProvider i18n={testI18n}>
-      <TooltipProvider>{children}</TooltipProvider>
-    </I18nextProvider>
+    <QueryClientProvider client={queryClient}>
+      <I18nextProvider i18n={testI18n}>
+        <TooltipProvider>{children}</TooltipProvider>
+      </I18nextProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -301,13 +316,17 @@ export async function renderWithRouterContext(
 
   await testRouter.load();
 
+  const queryClient = createTestQueryClient();
+
   return render(
-    <I18nextProvider i18n={testI18n}>
-      <TooltipProvider>
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */}
-        <RouterProvider router={testRouter as any} />
-      </TooltipProvider>
-    </I18nextProvider>,
+    <QueryClientProvider client={queryClient}>
+      <I18nextProvider i18n={testI18n}>
+        <TooltipProvider>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */}
+          <RouterProvider router={testRouter as any} />
+        </TooltipProvider>
+      </I18nextProvider>
+    </QueryClientProvider>,
     options,
   );
 }
@@ -315,12 +334,15 @@ export async function renderWithRouterContext(
 export function renderWithRouter(initialPath = '/'): RenderResult {
   const memoryHistory = createMemoryHistory({ initialEntries: [initialPath] });
   const router = createRouter({ routeTree, history: memoryHistory });
+  const queryClient = createTestQueryClient();
 
   return render(
-    <I18nextProvider i18n={testI18n}>
-      <TooltipProvider>
-        <RouterProvider router={router} />
-      </TooltipProvider>
-    </I18nextProvider>,
+    <QueryClientProvider client={queryClient}>
+      <I18nextProvider i18n={testI18n}>
+        <TooltipProvider>
+          <RouterProvider router={router} />
+        </TooltipProvider>
+      </I18nextProvider>
+    </QueryClientProvider>,
   );
 }
