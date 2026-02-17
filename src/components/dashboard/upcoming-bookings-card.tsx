@@ -1,13 +1,14 @@
 import { Calendar } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { bookings } from '@/data';
+import { useBookings } from '@/hooks/use-bookings';
 import { BOOKING_CATEGORY_COLORS } from '@/types';
 import { formatDateShort, formatTime } from '@/lib/date-utils';
 import { SummaryCard } from './summary-card';
 
 export function UpcomingBookingsCard(): React.JSX.Element {
   const { t } = useTranslation();
-  const upcoming = bookings.slice(0, 3);
+  const { data: bookings } = useBookings();
+  const upcoming = (bookings ?? []).slice(0, 3);
 
   return (
     <SummaryCard

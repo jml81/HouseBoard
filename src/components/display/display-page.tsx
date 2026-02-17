@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useClock } from '@/hooks/use-clock';
 import { formatFullDate, formatClock } from '@/lib/date-utils';
-import { building } from '@/data';
+import { useBuilding } from '@/hooks/use-building';
 import { cn } from '@/lib/utils';
 import { DisplayBookingsSlide } from './display-bookings-slide';
 import { DisplayAnnouncementsSlide } from './display-announcements-slide';
@@ -20,6 +20,7 @@ const SLIDE_INTERVAL = 10_000;
 export function DisplayPage(): React.JSX.Element {
   const now = useClock();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { data: building } = useBuilding();
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -33,7 +34,7 @@ export function DisplayPage(): React.JSX.Element {
   return (
     <div className="flex min-h-dvh flex-col bg-gray-900 text-white">
       <div className="flex items-center justify-between px-8 py-6">
-        <h1 className="text-3xl font-bold">{building.name}</h1>
+        <h1 className="text-3xl font-bold">{building?.name ?? ''}</h1>
         <div className="text-right">
           <p className="text-lg text-white/70">{formatFullDate(now)}</p>
           <p className="text-5xl font-bold tabular-nums">{formatClock(now)}</p>

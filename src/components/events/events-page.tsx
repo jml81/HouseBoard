@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import { events } from '@/data';
+import { useEvents } from '@/hooks/use-events';
 import { PageHeader } from '@/components/common/page-header';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { EventList } from './event-list';
 
 export function EventsPage(): React.JSX.Element {
   const { t } = useTranslation();
+  const { data: events = [] } = useEvents();
 
   return (
     <div>

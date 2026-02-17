@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MaterialCategory } from '@/types';
-import { materials } from '@/data';
+import { useMaterials } from '@/hooks/use-materials';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,7 @@ const categories: MaterialCategory[] = ['saannot', 'kokoukset', 'talous', 'kunno
 export function MaterialsPage(): React.JSX.Element {
   const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<MaterialCategory | null>(null);
+  const { data: materials = [] } = useMaterials();
 
   const filtered = selectedCategory
     ? materials.filter((m) => m.category === selectedCategory)

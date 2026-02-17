@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { meetings } from '@/data';
+import { useMeetings } from '@/hooks/use-meetings';
 import { PageHeader } from '@/components/common/page-header';
 import { EmptyState } from '@/components/common/empty-state';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -7,6 +7,7 @@ import { MeetingCard } from './meeting-card';
 
 export function MeetingsPage(): React.JSX.Element {
   const { t } = useTranslation();
+  const { data: meetings = [] } = useMeetings();
 
   const upcomingMeetings = meetings.filter((m) => m.status === 'upcoming');
   const pastMeetings = meetings.filter((m) => m.status === 'completed');

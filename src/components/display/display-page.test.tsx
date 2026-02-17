@@ -3,6 +3,16 @@ import { screen, act } from '@testing-library/react';
 import { renderWithProviders } from '@/test-utils';
 import { DisplayPage } from './display-page';
 
+const mockBuilding = {
+  name: 'As Oy Mäntyrinne',
+  address: 'Mäntypolku 5',
+  postalCode: '00320',
+  city: 'Helsinki',
+  apartments: 24,
+  buildYear: 1985,
+  managementCompany: 'Realia Isännöinti Oy',
+};
+
 const mockAnnouncements = [
   {
     id: 'a1',
@@ -16,18 +26,26 @@ const mockAnnouncements = [
   },
 ];
 
+function okJson(data: unknown): Response {
+  return new Response(JSON.stringify(data), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
 describe('DisplayPage', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 1, 16, 14, 35, 0));
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        new Response(JSON.stringify(mockAnnouncements), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }),
-      ),
+      vi.fn().mockImplementation((url: string) => {
+        if (url.includes('/api/building')) return Promise.resolve(okJson(mockBuilding));
+        if (url.includes('/api/bookings')) return Promise.resolve(okJson([]));
+        if (url.includes('/api/events')) return Promise.resolve(okJson([]));
+        if (url.includes('/api/announcements')) return Promise.resolve(okJson(mockAnnouncements));
+        return Promise.resolve(okJson([]));
+      }),
     );
   });
 
@@ -37,14 +55,16 @@ describe('DisplayPage', () => {
     vi.unstubAllGlobals();
   });
 
-  it('renders building name', () => {
+  it('renders building name', async () => {
     renderWithProviders(<DisplayPage />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
     expect(screen.getByText('As Oy Mäntyrinne')).toBeInTheDocument();
   });
 
   it('renders clock time', () => {
     renderWithProviders(<DisplayPage />);
-    // After subscribe, timestamp is updated to fake time
     act(() => {
       vi.advanceTimersByTime(1_000);
     });

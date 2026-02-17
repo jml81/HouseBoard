@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import type { MarketplaceItem, MarketplaceCategory, ItemCondition } from '@/types';
-import { marketplaceItems as initialItems } from '@/data';
+import { useMarketplaceItems } from '@/hooks/use-marketplace-items';
 import { PageHeader } from '@/components/common/page-header';
 import { EmptyState } from '@/components/common/empty-state';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,8 @@ const conditions: ItemCondition[] = ['uusi', 'hyva', 'kohtalainen', 'tyydyttava'
 
 export function MarketplaceList(): React.JSX.Element {
   const { t } = useTranslation();
-  const [items, setItems] = useState<MarketplaceItem[]>(initialItems);
+  const { data: remoteItems = [] } = useMarketplaceItems();
+  const [localAdditions, setLocalAdditions] = useState<MarketplaceItem[]>([]);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<MarketplaceCategory | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -52,6 +53,8 @@ export function MarketplaceList(): React.JSX.Element {
   const [formPrice, setFormPrice] = useState('');
   const [formCategory, setFormCategory] = useState<MarketplaceCategory>('muu');
   const [formCondition, setFormCondition] = useState<ItemCondition>('hyva');
+
+  const items = useMemo(() => [...localAdditions, ...remoteItems], [localAdditions, remoteItems]);
 
   const filtered = useMemo(() => {
     let result = items;
@@ -93,7 +96,7 @@ export function MarketplaceList(): React.JSX.Element {
       publishedAt: new Date().toISOString().slice(0, 10),
     };
 
-    setItems((prev) => [newItem, ...prev]);
+    setLocalAdditions((prev) => [newItem, ...prev]);
     setDialogOpen(false);
     resetForm();
   }

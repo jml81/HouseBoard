@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { apartments, apartmentPayments } from '@/data';
+import { useApartments, useApartmentPayments } from '@/hooks/use-apartments';
 import { PageHeader } from '@/components/common/page-header';
 import { EmptyState } from '@/components/common/empty-state';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,9 @@ export function ApartmentsPage(): React.JSX.Element {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [selectedStaircase, setSelectedStaircase] = useState<string | null>(null);
+  const { data: apartments = [], isLoading: loadingApts } = useApartments();
+  const { data: allPayments = [], isLoading: loadingPay } = useApartmentPayments();
+  const isLoading = loadingApts || loadingPay;
 
   const filtered = useMemo(() => {
     let result = apartments;
@@ -36,12 +39,21 @@ export function ApartmentsPage(): React.JSX.Element {
     }
 
     return result;
-  }, [search, selectedStaircase]);
+  }, [apartments, search, selectedStaircase]);
 
   const filteredPayments = useMemo(() => {
     const filteredIds = new Set(filtered.map((a) => a.id));
-    return apartmentPayments.filter((p) => filteredIds.has(p.apartmentId));
-  }, [filtered]);
+    return allPayments.filter((p) => filteredIds.has(p.apartmentId));
+  }, [filtered, allPayments]);
+
+  if (isLoading) {
+    return (
+      <div>
+        <PageHeader titleKey="apartments.title" descriptionKey="apartments.description" />
+        <div className="p-6" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -108,7 +120,7 @@ export function ApartmentsPage(): React.JSX.Element {
               ) : (
                 <div className="space-y-2">
                   {filtered.map((apartment) => {
-                    const payment = apartmentPayments.find((p) => p.apartmentId === apartment.id);
+                    const payment = allPayments.find((p) => p.apartmentId === apartment.id);
                     if (!payment) return null;
                     return (
                       <ApartmentPaymentRow

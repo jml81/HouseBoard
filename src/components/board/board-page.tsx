@@ -1,5 +1,5 @@
 import type { BoardRole } from '@/types';
-import { boardMembers } from '@/data';
+import { useBoardMembers } from '@/hooks/use-board-members';
 import { PageHeader } from '@/components/common/page-header';
 import { BoardMemberCard } from './board-member-card';
 
@@ -11,6 +11,7 @@ const ROLE_ORDER: Record<BoardRole, number> = {
 };
 
 export function BoardPage(): React.JSX.Element {
+  const { data: boardMembers = [] } = useBoardMembers();
   const sorted = [...boardMembers].sort((a, b) => ROLE_ORDER[a.role] - ROLE_ORDER[b.role]);
 
   return (

@@ -1,12 +1,13 @@
 import { PartyPopper } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { events } from '@/data';
+import { useEvents } from '@/hooks/use-events';
 import { formatDateShort, formatTime } from '@/lib/date-utils';
 import { SummaryCard } from './summary-card';
 
 export function UpcomingEventsCard(): React.JSX.Element {
   const { t } = useTranslation();
-  const upcoming = events.filter((e) => e.status === 'upcoming').slice(0, 3);
+  const { data: events } = useEvents();
+  const upcoming = (events ?? []).filter((e) => e.status === 'upcoming').slice(0, 3);
 
   return (
     <SummaryCard

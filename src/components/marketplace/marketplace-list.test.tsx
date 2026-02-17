@@ -1,10 +1,140 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithRouterContext } from '@/test-utils';
 import { MarketplaceList } from './marketplace-list';
 
+const mockItems = [
+  {
+    id: 'mp1',
+    title: 'Ikea Kallax -hylly, valkoinen',
+    description: 'Hyväkuntoinen hylly.',
+    price: 40,
+    category: 'huonekalu',
+    condition: 'hyva',
+    status: 'available',
+    seller: { name: 'Minna Korhonen', apartment: 'B 12' },
+    publishedAt: '2026-02-14',
+  },
+  {
+    id: 'mp2',
+    title: 'Samsung Galaxy Tab A9',
+    description: 'Tabletti.',
+    price: 120,
+    category: 'elektroniikka',
+    condition: 'hyva',
+    status: 'available',
+    seller: { name: 'Jari Virtanen', apartment: 'A 3' },
+    publishedAt: '2026-02-12',
+  },
+  {
+    id: 'mp3',
+    title: 'Naisten talvitakki, koko M',
+    description: 'Untuvakki.',
+    price: 35,
+    category: 'vaatteet',
+    condition: 'hyva',
+    status: 'available',
+    seller: { name: 'Liisa Mäkelä', apartment: 'C 22' },
+    publishedAt: '2026-02-10',
+  },
+  {
+    id: 'mp4',
+    title: 'Polkupyörä 26"',
+    description: 'Kaupunkipyörä.',
+    price: 60,
+    category: 'urheilu',
+    condition: 'kohtalainen',
+    status: 'available',
+    seller: { name: 'Timo Nieminen', apartment: 'A 7' },
+    publishedAt: '2026-02-08',
+  },
+  {
+    id: 'mp5',
+    title: 'Lastenkirjapaketti, 15 kpl',
+    description: 'Lastenkirjoja.',
+    price: 0,
+    category: 'kirjat',
+    condition: 'kohtalainen',
+    status: 'available',
+    seller: { name: 'Anna Lahtinen', apartment: 'B 16' },
+    publishedAt: '2026-02-06',
+  },
+  {
+    id: 'mp6',
+    title: 'Kahvinkeitin Moccamaster',
+    description: 'Kahvinkeitin.',
+    price: 45,
+    category: 'elektroniikka',
+    condition: 'hyva',
+    status: 'reserved',
+    seller: { name: 'Pekka Salminen', apartment: 'C 19' },
+    publishedAt: '2026-02-04',
+  },
+  {
+    id: 'mp7',
+    title: 'Sohvapöytä, tammea',
+    description: 'Pöytä.',
+    price: 75,
+    category: 'huonekalu',
+    condition: 'kohtalainen',
+    status: 'sold',
+    seller: { name: 'Heikki Järvinen', apartment: 'A 5' },
+    publishedAt: '2026-01-28',
+  },
+  {
+    id: 'mp8',
+    title: 'Joogatarvikkeet',
+    description: 'Joogamatto.',
+    price: 0,
+    category: 'urheilu',
+    condition: 'uusi',
+    status: 'available',
+    seller: { name: 'Sari Rantala', apartment: 'B 9' },
+    publishedAt: '2026-02-01',
+  },
+  {
+    id: 'mp9',
+    title: 'Dekkarikokoelma, 8 kirjaa',
+    description: 'Dekkarit.',
+    price: 15,
+    category: 'kirjat',
+    condition: 'hyva',
+    status: 'available',
+    seller: { name: 'Markku Laine', apartment: 'C 24' },
+    publishedAt: '2026-01-25',
+  },
+  {
+    id: 'mp10',
+    title: 'Patja 80x200 cm',
+    description: 'Patja.',
+    price: 25,
+    category: 'muu',
+    condition: 'tyydyttava',
+    status: 'available',
+    seller: { name: 'Tiina Koskinen', apartment: 'A 2' },
+    publishedAt: '2026-01-20',
+  },
+];
+
 describe('MarketplaceList', () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify(mockItems), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
   it('renders page header', async () => {
     await renderWithRouterContext(<MarketplaceList />);
     expect(screen.getByText('Kirpputori')).toBeInTheDocument();
@@ -35,12 +165,12 @@ describe('MarketplaceList', () => {
 
   it('renders item count', async () => {
     await renderWithRouterContext(<MarketplaceList />);
-    expect(screen.getByText(/10 tuotetta/)).toBeInTheDocument();
+    expect(await screen.findByText(/10 tuotetta/)).toBeInTheDocument();
   });
 
   it('renders item titles', async () => {
     await renderWithRouterContext(<MarketplaceList />);
-    expect(screen.getByText('Ikea Kallax -hylly, valkoinen')).toBeInTheDocument();
+    expect(await screen.findByText('Ikea Kallax -hylly, valkoinen')).toBeInTheDocument();
     expect(screen.getByText('Samsung Galaxy Tab A9')).toBeInTheDocument();
   });
 
@@ -48,6 +178,7 @@ describe('MarketplaceList', () => {
     const user = userEvent.setup();
     await renderWithRouterContext(<MarketplaceList />);
 
+    await screen.findByText('Ikea Kallax -hylly, valkoinen');
     await user.click(screen.getByRole('button', { name: 'Kirjat' }));
 
     expect(screen.getByText('Lastenkirjapaketti, 15 kpl')).toBeInTheDocument();
@@ -60,6 +191,7 @@ describe('MarketplaceList', () => {
     const user = userEvent.setup();
     await renderWithRouterContext(<MarketplaceList />);
 
+    await screen.findByText('Ikea Kallax -hylly, valkoinen');
     await user.type(screen.getByPlaceholderText('Hae tuotetta...'), 'Samsung');
 
     expect(screen.getByText('Samsung Galaxy Tab A9')).toBeInTheDocument();
@@ -71,6 +203,7 @@ describe('MarketplaceList', () => {
     const user = userEvent.setup();
     await renderWithRouterContext(<MarketplaceList />);
 
+    await screen.findByText('Ikea Kallax -hylly, valkoinen');
     await user.type(screen.getByPlaceholderText('Hae tuotetta...'), 'xyznonexistent');
 
     expect(screen.getByText('Ei hakutuloksia')).toBeInTheDocument();
@@ -81,6 +214,7 @@ describe('MarketplaceList', () => {
     const user = userEvent.setup();
     await renderWithRouterContext(<MarketplaceList />);
 
+    await screen.findByText('Ikea Kallax -hylly, valkoinen');
     await user.click(screen.getByRole('button', { name: 'Kirjat' }));
     expect(screen.getByText(/2 tuotetta/)).toBeInTheDocument();
 
@@ -114,6 +248,7 @@ describe('MarketplaceList', () => {
     const user = userEvent.setup();
     await renderWithRouterContext(<MarketplaceList />);
 
+    await screen.findByText('Ikea Kallax -hylly, valkoinen');
     await user.click(screen.getByText('Myy'));
 
     const titleInput = screen.getByLabelText('Otsikko');

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ContactRole } from '@/types';
-import { contacts } from '@/data';
+import type { Contact, ContactRole } from '@/types';
+import { useContacts } from '@/hooks/use-contacts';
 import { PageHeader } from '@/components/common/page-header';
 import { ContactCard } from './contact-card';
 
@@ -9,9 +9,10 @@ const ROLE_ORDER: ContactRole[] = ['isannoitsija', 'huolto', 'hallitus', 'siivou
 
 export function ContactsPage(): React.JSX.Element {
   const { t } = useTranslation();
+  const { data: contacts = [] } = useContacts();
 
   const grouped = useMemo(() => {
-    const groups = new Map<ContactRole, typeof contacts>();
+    const groups = new Map<ContactRole, Contact[]>();
     for (const role of ROLE_ORDER) {
       const roleContacts = contacts.filter((c) => c.role === role);
       if (roleContacts.length > 0) {
@@ -19,7 +20,7 @@ export function ContactsPage(): React.JSX.Element {
       }
     }
     return groups;
-  }, []);
+  }, [contacts]);
 
   return (
     <div>

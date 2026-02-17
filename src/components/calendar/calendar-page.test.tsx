@@ -1,9 +1,40 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '@/test-utils';
 import { CalendarPage } from './calendar-page';
 
+const mockBookings = [
+  {
+    id: 'b1',
+    title: 'Saunavuoro',
+    date: '2026-03-02',
+    startTime: '18:00',
+    endTime: '20:00',
+    category: 'sauna',
+    location: 'Taloyhtiön sauna',
+    bookerName: 'Virtanen Matti',
+    apartment: 'A 12',
+  },
+];
+
 describe('CalendarPage', () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify(mockBookings), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
   it('renders page header', () => {
     renderWithProviders(<CalendarPage />);
     expect(screen.getByText('Kalenteri')).toBeInTheDocument();

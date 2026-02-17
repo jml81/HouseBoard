@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { bookings } from '@/data';
+import { useBookings } from '@/hooks/use-bookings';
 import { BOOKING_CATEGORY_COLORS } from '@/types';
 import { formatDate } from '@/lib/date-utils';
 
 export function DisplayBookingsSlide(): React.JSX.Element {
   const { t } = useTranslation();
+  const { data: bookings = [] } = useBookings();
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayBookings = bookings.filter((b) => b.date === todayStr);

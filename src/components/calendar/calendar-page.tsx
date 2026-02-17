@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { addMonths, subMonths, format, isSameDay } from 'date-fns';
 import type { BookingCategory } from '@/types';
-import { bookings } from '@/data';
+import { useBookings } from '@/hooks/use-bookings';
 import { formatMonthYear } from '@/lib/date-utils';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ export function CalendarPage(): React.JSX.Element {
   const [currentMonth, setCurrentMonth] = useState(() => new Date(2026, 2, 1)); // March 2026
   const [selectedCategory, setSelectedCategory] = useState<BookingCategory | null>(null);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const { data: bookings = [] } = useBookings();
 
   const filteredBookings = selectedCategory
     ? bookings.filter((b) => b.category === selectedCategory)

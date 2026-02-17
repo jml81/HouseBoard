@@ -1,12 +1,15 @@
 import { FolderOpen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { materials } from '@/data';
+import { useMaterials } from '@/hooks/use-materials';
 import { formatDateShort } from '@/lib/date-utils';
 import { SummaryCard } from './summary-card';
 
 export function RecentMaterialsCard(): React.JSX.Element {
   const { t } = useTranslation();
-  const recent = [...materials].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 3);
+  const { data: materials } = useMaterials();
+  const recent = [...(materials ?? [])]
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .slice(0, 3);
 
   return (
     <SummaryCard
