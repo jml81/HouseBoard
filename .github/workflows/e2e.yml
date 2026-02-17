@@ -24,6 +24,9 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
+      - name: Generate route tree
+        run: pnpm exec tsr generate
+
       - name: Build
         run: pnpm build
 

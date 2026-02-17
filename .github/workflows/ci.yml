@@ -23,6 +23,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate route tree
+        run: pnpm exec tsr generate
+
       - name: Lint
         run: pnpm lint
 
@@ -51,6 +54,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Generate route tree
+        run: pnpm exec tsr generate
 
       - name: Build
         run: pnpm build
