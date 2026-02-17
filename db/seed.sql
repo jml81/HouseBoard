@@ -1,3 +1,8 @@
+-- Delete child tables first (FK constraints)
+DELETE FROM apartment_payments;
+DELETE FROM meeting_documents;
+
+-- Delete parent and independent tables
 DELETE FROM announcements;
 
 INSERT INTO announcements (id, title, summary, content, category, author, published_at, is_new) VALUES
@@ -145,8 +150,6 @@ INSERT INTO materials (id, name, category, file_type, file_size, updated_at, des
 ('m9', 'Pelastussuunnitelma', 'saannot', 'pdf', '1.8 MB', '2025-08-10', 'Taloyhtiön pelastussuunnitelma ja turvallisuusohjeet.'),
 ('m10', 'Vastikeseuranta 2026', 'talous', 'xlsx', '98 KB', '2026-02-01', 'Vastikkeiden maksutilanteen seuranta.');
 
--- Meeting documents (delete before meetings due to FK)
-DELETE FROM meeting_documents;
 -- Meetings
 DELETE FROM meetings;
 
@@ -241,9 +244,6 @@ INSERT INTO marketplace_items (id, title, description, price, category, conditio
 ('mp8', 'Joogatarvikkeet', 'Joogamatto (Casall), 2 blokkia ja joogavyö. Käytetty muutaman kerran, lähes uudenveroiset.', 0, 'urheilu', 'uusi', 'available', 'Sari Rantala', 'B 9', '2026-02-01'),
 ('mp9', 'Dekkarikokoelma, 8 kirjaa', 'Ilkka Remes -kokoelma: 8 dekkaria hyvässä kunnossa. Luettu kerran, ei taittuneita sivuja.', 15, 'kirjat', 'hyva', 'available', 'Markku Laine', 'C 24', '2026-01-25'),
 ('mp10', 'Patja 80x200 cm', 'Jämäkkä vaahtomuovipatja, käytetty vierashuoneessa satunnaisesti. Suojattu päällisellä, puhdas ja hyväkuntoinen.', 25, 'muu', 'tyydyttava', 'available', 'Tiina Koskinen', 'A 2', '2026-01-20');
-
--- Apartment payments (delete before apartments would fail due to FK, but apartment_payments refs apartments)
-DELETE FROM apartment_payments;
 
 INSERT INTO apartment_payments (apartment_id, monthly_charge, payment_status, last_payment_date, arrears, hoitovastike, rahoitusvastike, vesimaksu) VALUES
 ('apt-a1', 240, 'paid', '2026-02-01', 0, 156, 60, 24),
