@@ -29,9 +29,53 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: D1 schema migration
+        if: github.event_name == 'push'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 execute houseboard-db --remote --file=db/schema.sql
+
+      - name: D1 seed data
+        if: github.event_name == 'push'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 execute houseboard-db --remote --file=db/seed.sql
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=${{ github.event.repository.name }}
+          command: pages deploy dist --project-name=houseboard
+
+      - name: Smoke tests
+        if: github.event_name == 'push'
+        run: |
+          echo "Waiting 10s for edge propagation..."
+          sleep 10
+
+          echo "Testing /api/health..."
+          HEALTH=$(curl -sf https://houseboard.pages.dev/api/health)
+          echo "$HEALTH" | grep -q '"status":"ok"' || { echo "FAIL: /api/health"; exit 1; }
+          echo "OK: $HEALTH"
+
+          echo "Testing /api/announcements..."
+          ANNOUNCEMENTS=$(curl -sf https://houseboard.pages.dev/api/announcements)
+          echo "$ANNOUNCEMENTS" | grep -q '"id"' || { echo "FAIL: /api/announcements"; exit 1; }
+          echo "OK: response contains announcements"
+
+          echo "Testing /api/building..."
+          BUILDING=$(curl -sf https://houseboard.pages.dev/api/building)
+          echo "$BUILDING" | grep -q '"name"' || { echo "FAIL: /api/building"; exit 1; }
+          echo "OK: $BUILDING"
+
+          echo "Testing / (HTML)..."
+          HTML=$(curl -sf https://houseboard.pages.dev/)
+          echo "$HTML" | grep -q '<div id="root">' || { echo "FAIL: / HTML"; exit 1; }
+          echo "OK: HTML contains root div"
+
+          echo "All smoke tests passed!"
