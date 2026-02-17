@@ -24,6 +24,10 @@ export default defineConfig({
         'src/**/index.ts',
         'src/route-tree.gen.ts',
         'src/routes/**',
+        'src/components/ui/**',
+        'src/data/**',
+        'src/main.tsx',
+        'src/app/providers.tsx',
       ],
       thresholds: {
         lines: 80,
