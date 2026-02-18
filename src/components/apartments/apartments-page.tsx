@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useApartments, useApartmentPayments } from '@/hooks/use-apartments';
+import { useAuthStore } from '@/stores/auth-store';
 import { PageHeader } from '@/components/common/page-header';
 import { EmptyState } from '@/components/common/empty-state';
 import { Input } from '@/components/ui/input';
@@ -10,13 +11,16 @@ import { cn } from '@/lib/utils';
 import { ApartmentTable } from './apartment-table';
 import { ApartmentPaymentRow } from './apartment-payment-row';
 import { PaymentSummaryBar } from './payment-summary-bar';
+import { PaymentFormDialog } from './payment-form-dialog';
 
 const staircases = ['A', 'B', 'C'] as const;
 
 export function ApartmentsPage(): React.JSX.Element {
   const { t } = useTranslation();
+  const isManager = useAuthStore((s) => s.isManager);
   const [search, setSearch] = useState('');
   const [selectedStaircase, setSelectedStaircase] = useState<string | null>(null);
+  const [createPaymentOpen, setCreatePaymentOpen] = useState(false);
   const { data: apartments = [], isLoading: loadingApts } = useApartments();
   const { data: allPayments = [], isLoading: loadingPay } = useApartmentPayments();
   const isLoading = loadingApts || loadingPay;
@@ -45,6 +49,11 @@ export function ApartmentsPage(): React.JSX.Element {
     const filteredIds = new Set(filtered.map((a) => a.id));
     return allPayments.filter((p) => filteredIds.has(p.apartmentId));
   }, [filtered, allPayments]);
+
+  const existingPaymentIds = useMemo(
+    () => new Set(allPayments.map((p) => p.apartmentId)),
+    [allPayments],
+  );
 
   if (isLoading) {
     return (
@@ -114,6 +123,14 @@ export function ApartmentsPage(): React.JSX.Element {
 
           <TabsContent value="payments">
             <div className="space-y-4">
+              {isManager && (
+                <Button
+                  className="bg-hbplus-accent hover:bg-hbplus-accent/90"
+                  onClick={() => setCreatePaymentOpen(true)}
+                >
+                  {t('apartments.payments.createPayment')}
+                </Button>
+              )}
               <PaymentSummaryBar payments={filteredPayments} />
               {filtered.length === 0 ? (
                 <EmptyState title={t('apartments.noResults')} />
@@ -136,6 +153,13 @@ export function ApartmentsPage(): React.JSX.Element {
           </TabsContent>
         </Tabs>
       </div>
+
+      <PaymentFormDialog
+        open={createPaymentOpen}
+        onOpenChange={setCreatePaymentOpen}
+        apartments={apartments}
+        existingPaymentIds={existingPaymentIds}
+      />
     </div>
   );
 }

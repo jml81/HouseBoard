@@ -1,9 +1,22 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import type { Apartment, ApartmentPayment } from '@/types';
+import { useAuthStore } from '@/stores/auth-store';
+import { useDeleteApartmentPayment } from '@/hooks/use-apartments';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { formatDate } from '@/lib/date-utils';
 import { PaymentStatusBadge } from './payment-status-badge';
+import { PaymentFormDialog } from './payment-form-dialog';
 
 interface ApartmentPaymentRowProps {
   apartment: Apartment;
@@ -15,7 +28,21 @@ export function ApartmentPaymentRow({
   payment,
 }: ApartmentPaymentRowProps): React.JSX.Element {
   const { t } = useTranslation();
+  const isManager = useAuthStore((s) => s.isManager);
+  const deletePayment = useDeleteApartmentPayment();
   const [expanded, setExpanded] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  async function handleDelete(): Promise<void> {
+    try {
+      await deletePayment.mutateAsync(payment.apartmentId);
+      toast.success(t('apartments.payments.deleteSuccess'));
+      setDeleteOpen(false);
+    } catch {
+      toast.error(t('apartments.payments.deleteError'));
+    }
+  }
 
   return (
     <div className="rounded-lg border">
@@ -63,8 +90,43 @@ export function ApartmentPaymentRow({
               <p className="font-medium">{formatDate(payment.lastPaymentDate)}</p>
             </div>
           </div>
+          {isManager && (
+            <div className="mt-3 flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                {t('apartments.payments.editPayment')}
+              </Button>
+              <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+                {t('apartments.payments.deletePayment')}
+              </Button>
+            </div>
+          )}
         </div>
       )}
+
+      <PaymentFormDialog open={editOpen} onOpenChange={setEditOpen} payment={payment} />
+
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('apartments.payments.deletePayment')}</DialogTitle>
+            <DialogDescription>{t('apartments.payments.deleteConfirm')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                void handleDelete();
+              }}
+              disabled={deletePayment.isPending}
+            >
+              {t('common.delete')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

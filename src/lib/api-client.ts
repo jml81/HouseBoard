@@ -19,6 +19,7 @@ import type {
   ItemCondition,
   ItemStatus,
   ApartmentPayment,
+  PaymentStatus,
 } from '@/types';
 
 export class ApiError extends Error {
@@ -110,6 +111,26 @@ export interface UpdateBookingInput {
   endTime?: string;
   title?: string;
   location?: string;
+}
+
+export interface CreateApartmentPaymentInput {
+  apartmentId: string;
+  paymentStatus: PaymentStatus;
+  lastPaymentDate: string;
+  arrears: number;
+  hoitovastike: number;
+  rahoitusvastike: number;
+  vesimaksu: number;
+}
+
+export interface UpdateApartmentPaymentInput {
+  apartmentId: string;
+  paymentStatus?: PaymentStatus;
+  lastPaymentDate?: string;
+  arrears?: number;
+  hoitovastike?: number;
+  rahoitusvastike?: number;
+  vesimaksu?: number;
 }
 
 export const apiClient = {
@@ -272,6 +293,30 @@ export const apiClient = {
     get(apartmentId: string): Promise<ApartmentPayment> {
       return fetchJson<ApartmentPayment>(
         `/api/apartments/${encodeURIComponent(apartmentId)}/payments`,
+      );
+    },
+    create(input: CreateApartmentPaymentInput): Promise<ApartmentPayment> {
+      return mutateJson<ApartmentPayment>('/api/apartment-payments', {
+        method: 'POST',
+        body: input,
+      });
+    },
+    update(input: UpdateApartmentPaymentInput): Promise<ApartmentPayment> {
+      const { apartmentId, ...data } = input;
+      return mutateJson<ApartmentPayment>(
+        `/api/apartment-payments/${encodeURIComponent(apartmentId)}`,
+        {
+          method: 'PATCH',
+          body: data,
+        },
+      );
+    },
+    delete(apartmentId: string): Promise<{ success: boolean }> {
+      return mutateJson<{ success: boolean }>(
+        `/api/apartment-payments/${encodeURIComponent(apartmentId)}`,
+        {
+          method: 'DELETE',
+        },
       );
     },
   },

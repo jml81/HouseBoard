@@ -435,6 +435,7 @@ const VALID_MARKETPLACE_CATEGORIES = [
 ];
 const VALID_MARKETPLACE_STATUSES = ['available', 'sold', 'reserved'];
 const VALID_ITEM_CONDITIONS = ['uusi', 'hyva', 'kohtalainen', 'tyydyttava'];
+const VALID_PAYMENT_STATUSES = ['paid', 'pending', 'overdue'];
 
 // --- App ---
 
@@ -1241,6 +1242,183 @@ app.get('/api/apartments/:id/payments', async (c) => {
   }
 
   return c.json(toApartmentPaymentResponse(row));
+});
+
+app.post('/api/apartment-payments', async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const errors: string[] = [];
+  if (!body.apartmentId || typeof body.apartmentId !== 'string') {
+    errors.push('apartmentId is required');
+  }
+  if (!body.paymentStatus || !VALID_PAYMENT_STATUSES.includes(body.paymentStatus as string)) {
+    errors.push('invalid paymentStatus');
+  }
+  if (!body.lastPaymentDate || typeof body.lastPaymentDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.lastPaymentDate)) {
+    errors.push('lastPaymentDate is required (YYYY-MM-DD)');
+  }
+  if (typeof body.arrears !== 'number' || body.arrears < 0) {
+    errors.push('arrears must be a non-negative number');
+  }
+  if (typeof body.hoitovastike !== 'number' || body.hoitovastike < 0) {
+    errors.push('hoitovastike must be a non-negative number');
+  }
+  if (typeof body.rahoitusvastike !== 'number' || body.rahoitusvastike < 0) {
+    errors.push('rahoitusvastike must be a non-negative number');
+  }
+  if (typeof body.vesimaksu !== 'number' || body.vesimaksu < 0) {
+    errors.push('vesimaksu must be a non-negative number');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  // Check apartment exists
+  const apartment = await c.env.DB.prepare('SELECT id FROM apartments WHERE id = ?')
+    .bind(body.apartmentId as string)
+    .first();
+
+  if (!apartment) {
+    return c.json({ error: 'Apartment not found' }, 404);
+  }
+
+  // Check for duplicate
+  const existing = await c.env.DB.prepare('SELECT apartment_id FROM apartment_payments WHERE apartment_id = ?')
+    .bind(body.apartmentId as string)
+    .first();
+
+  if (existing) {
+    return c.json({ error: 'Apartment already has payment info' }, 409);
+  }
+
+  const monthlyCharge = (body.hoitovastike as number) + (body.rahoitusvastike as number) + (body.vesimaksu as number);
+
+  await c.env.DB.prepare(
+    `INSERT INTO apartment_payments (apartment_id, monthly_charge, payment_status, last_payment_date, arrears, hoitovastike, rahoitusvastike, vesimaksu)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(
+      body.apartmentId as string,
+      monthlyCharge,
+      body.paymentStatus as string,
+      body.lastPaymentDate as string,
+      body.arrears as number,
+      body.hoitovastike as number,
+      body.rahoitusvastike as number,
+      body.vesimaksu as number,
+    )
+    .run();
+
+  const row = await c.env.DB.prepare('SELECT * FROM apartment_payments WHERE apartment_id = ?')
+    .bind(body.apartmentId as string)
+    .first<ApartmentPaymentRow>();
+
+  return c.json(toApartmentPaymentResponse(row!), 201);
+});
+
+app.patch('/api/apartment-payments/:apartmentId', async (c) => {
+  const apartmentId = c.req.param('apartmentId');
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const existing = await c.env.DB.prepare('SELECT * FROM apartment_payments WHERE apartment_id = ?')
+    .bind(apartmentId)
+    .first<ApartmentPaymentRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  const errors: string[] = [];
+  if (body.paymentStatus !== undefined && !VALID_PAYMENT_STATUSES.includes(body.paymentStatus as string)) {
+    errors.push('invalid paymentStatus');
+  }
+  if (body.lastPaymentDate !== undefined && (typeof body.lastPaymentDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.lastPaymentDate))) {
+    errors.push('invalid lastPaymentDate format (YYYY-MM-DD)');
+  }
+  if (body.arrears !== undefined && (typeof body.arrears !== 'number' || body.arrears < 0)) {
+    errors.push('arrears must be a non-negative number');
+  }
+  if (body.hoitovastike !== undefined && (typeof body.hoitovastike !== 'number' || body.hoitovastike < 0)) {
+    errors.push('hoitovastike must be a non-negative number');
+  }
+  if (body.rahoitusvastike !== undefined && (typeof body.rahoitusvastike !== 'number' || body.rahoitusvastike < 0)) {
+    errors.push('rahoitusvastike must be a non-negative number');
+  }
+  if (body.vesimaksu !== undefined && (typeof body.vesimaksu !== 'number' || body.vesimaksu < 0)) {
+    errors.push('vesimaksu must be a non-negative number');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const updates: string[] = [];
+  const params: (string | number)[] = [];
+
+  if (body.paymentStatus !== undefined) {
+    updates.push('payment_status = ?');
+    params.push(body.paymentStatus as string);
+  }
+  if (body.lastPaymentDate !== undefined) {
+    updates.push('last_payment_date = ?');
+    params.push(body.lastPaymentDate as string);
+  }
+  if (body.arrears !== undefined) {
+    updates.push('arrears = ?');
+    params.push(body.arrears as number);
+  }
+  if (body.hoitovastike !== undefined) {
+    updates.push('hoitovastike = ?');
+    params.push(body.hoitovastike as number);
+  }
+  if (body.rahoitusvastike !== undefined) {
+    updates.push('rahoitusvastike = ?');
+    params.push(body.rahoitusvastike as number);
+  }
+  if (body.vesimaksu !== undefined) {
+    updates.push('vesimaksu = ?');
+    params.push(body.vesimaksu as number);
+  }
+
+  // Recalculate monthly_charge if any charge component changed
+  if (body.hoitovastike !== undefined || body.rahoitusvastike !== undefined || body.vesimaksu !== undefined) {
+    const newHoitovastike = (body.hoitovastike as number | undefined) ?? existing.hoitovastike;
+    const newRahoitusvastike = (body.rahoitusvastike as number | undefined) ?? existing.rahoitusvastike;
+    const newVesimaksu = (body.vesimaksu as number | undefined) ?? existing.vesimaksu;
+    const monthlyCharge = newHoitovastike + newRahoitusvastike + newVesimaksu;
+    updates.push('monthly_charge = ?');
+    params.push(monthlyCharge);
+  }
+
+  if (updates.length > 0) {
+    params.push(apartmentId);
+    await c.env.DB.prepare(`UPDATE apartment_payments SET ${updates.join(', ')} WHERE apartment_id = ?`)
+      .bind(...params)
+      .run();
+  }
+
+  const row = await c.env.DB.prepare('SELECT * FROM apartment_payments WHERE apartment_id = ?')
+    .bind(apartmentId)
+    .first<ApartmentPaymentRow>();
+
+  return c.json(toApartmentPaymentResponse(row!));
+});
+
+app.delete('/api/apartment-payments/:apartmentId', async (c) => {
+  const apartmentId = c.req.param('apartmentId');
+
+  const existing = await c.env.DB.prepare('SELECT apartment_id FROM apartment_payments WHERE apartment_id = ?')
+    .bind(apartmentId)
+    .first();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  await c.env.DB.prepare('DELETE FROM apartment_payments WHERE apartment_id = ?').bind(apartmentId).run();
+
+  return c.json({ success: true });
 });
 
 // Static assets fallback
