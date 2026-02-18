@@ -90,7 +90,10 @@ describe('signJwt + verifyJwt', () => {
 
   it('returns null for tampered token', async () => {
     const token = await signJwt(payload, secret);
-    const tampered = token.slice(0, -1) + (token.endsWith('A') ? 'B' : 'A');
+    const parts = token.split('.');
+    // Reverse the signature to reliably produce an invalid HMAC
+    parts[2] = parts[2].split('').reverse().join('');
+    const tampered = parts.join('.');
     const decoded = await verifyJwt(tampered, secret);
     expect(decoded).toBeNull();
   });
