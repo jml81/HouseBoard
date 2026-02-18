@@ -1,9 +1,16 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createElement } from 'react';
 import type { ReactNode } from 'react';
-import { useAnnouncements, useAnnouncement, announcementKeys } from './use-announcements';
+import {
+  useAnnouncements,
+  useAnnouncement,
+  useCreateAnnouncement,
+  useUpdateAnnouncement,
+  useDeleteAnnouncement,
+  announcementKeys,
+} from './use-announcements';
 
 const mockAnnouncements = [
   {
@@ -80,6 +87,107 @@ describe('useAnnouncement', () => {
     await waitFor(() => {
       expect(result.current.data).toEqual(mockItem);
     });
+  });
+});
+
+describe('useCreateAnnouncement', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('sends POST and returns created announcement', async () => {
+    const created = {
+      id: 'new-1',
+      title: 'Uusi tiedote',
+      summary: 'Yhteenveto',
+      content: 'Sisältö',
+      category: 'yleinen',
+      author: 'Hallitus',
+      publishedAt: '2026-03-01',
+      isNew: true,
+    };
+    mockFetch(created);
+
+    const { result } = renderHook(() => useCreateAnnouncement(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      const response = await result.current.mutateAsync({
+        title: 'Uusi tiedote',
+        summary: 'Yhteenveto',
+        content: 'Sisältö',
+        category: 'yleinen',
+        author: 'Hallitus',
+      });
+      expect(response).toEqual(created);
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/announcements',
+      expect.objectContaining({
+        method: 'POST',
+      }),
+    );
+  });
+});
+
+describe('useUpdateAnnouncement', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('sends PATCH and returns updated announcement', async () => {
+    const updated = { ...mockAnnouncements[0], title: 'Päivitetty otsikko' };
+    mockFetch(updated);
+
+    const { result } = renderHook(() => useUpdateAnnouncement(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      const response = await result.current.mutateAsync({
+        id: 'a1',
+        title: 'Päivitetty otsikko',
+      });
+      expect(response).toEqual(updated);
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/announcements/a1',
+      expect.objectContaining({
+        method: 'PATCH',
+      }),
+    );
+  });
+});
+
+describe('useDeleteAnnouncement', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('sends DELETE and returns success', async () => {
+    mockFetch({ success: true });
+
+    const { result } = renderHook(() => useDeleteAnnouncement(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      const response = await result.current.mutateAsync('a1');
+      expect(response).toEqual({ success: true });
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/announcements/a1',
+      expect.objectContaining({
+        method: 'DELETE',
+      }),
+    );
   });
 });
 

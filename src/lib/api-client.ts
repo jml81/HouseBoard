@@ -54,6 +54,22 @@ async function mutateJson<T>(url: string, options: { method: string; body?: unkn
   return response.json() as Promise<T>;
 }
 
+export interface CreateAnnouncementInput {
+  title: string;
+  summary: string;
+  content: string;
+  category: AnnouncementCategory;
+  author: string;
+}
+
+export interface UpdateAnnouncementInput {
+  id: string;
+  title?: string;
+  summary?: string;
+  content?: string;
+  category?: AnnouncementCategory;
+}
+
 export interface MarketplaceFilters {
   category?: MarketplaceCategory;
   status?: ItemStatus;
@@ -106,6 +122,24 @@ export const apiClient = {
     },
     get(id: string): Promise<Announcement> {
       return fetchJson<Announcement>(`/api/announcements/${encodeURIComponent(id)}`);
+    },
+    create(input: CreateAnnouncementInput): Promise<Announcement> {
+      return mutateJson<Announcement>('/api/announcements', {
+        method: 'POST',
+        body: input,
+      });
+    },
+    update(input: UpdateAnnouncementInput): Promise<Announcement> {
+      const { id, ...data } = input;
+      return mutateJson<Announcement>(`/api/announcements/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: data,
+      });
+    },
+    delete(id: string): Promise<{ success: boolean }> {
+      return mutateJson<{ success: boolean }>(`/api/announcements/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
     },
   },
 
