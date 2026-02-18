@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test-utils';
 import { CalendarPage } from './calendar-page';
 
@@ -64,5 +65,19 @@ describe('CalendarPage', () => {
     renderWithProviders(<CalendarPage />);
     expect(screen.getByText('ma')).toBeInTheDocument();
     expect(screen.getByText('su')).toBeInTheDocument();
+  });
+
+  it('renders "Varaa tila" button', () => {
+    renderWithProviders(<CalendarPage />);
+    expect(screen.getByText('Varaa tila')).toBeInTheDocument();
+  });
+
+  it('opens booking form dialog when "Varaa tila" is clicked', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<CalendarPage />);
+
+    await user.click(screen.getByText('Varaa tila'));
+
+    expect(screen.getByText('Tee uusi tilavaraus')).toBeInTheDocument();
   });
 });

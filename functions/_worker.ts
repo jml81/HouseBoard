@@ -534,6 +534,212 @@ app.get('/api/bookings/:id', async (c) => {
   return c.json(toBookingResponse(row));
 });
 
+// Category defaults for auto-fill
+const BOOKING_CATEGORY_DEFAULTS: Record<string, { title: string; location: string }> = {
+  sauna: { title: 'Saunavuoro', location: 'Taloyhtiön sauna' },
+  pesutupa: { title: 'Pesutupavuoro', location: 'Taloyhtiön pesutupa' },
+  kerhohuone: { title: 'Kerhohuonevaraus', location: 'Kerhohuone' },
+  talkoot: { title: 'Talkoot', location: 'Piha-alue' },
+};
+
+app.post('/api/bookings', async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const errors: string[] = [];
+  if (!body.category || !VALID_BOOKING_CATEGORIES.includes(body.category as string)) {
+    errors.push('invalid category');
+  }
+  if (!body.date || typeof body.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.date)) {
+    errors.push('date is required (YYYY-MM-DD)');
+  }
+  if (
+    !body.startTime ||
+    typeof body.startTime !== 'string' ||
+    !/^\d{2}:\d{2}$/.test(body.startTime)
+  ) {
+    errors.push('startTime is required (HH:mm)');
+  }
+  if (!body.endTime || typeof body.endTime !== 'string' || !/^\d{2}:\d{2}$/.test(body.endTime)) {
+    errors.push('endTime is required (HH:mm)');
+  }
+  if (
+    body.startTime &&
+    body.endTime &&
+    typeof body.startTime === 'string' &&
+    typeof body.endTime === 'string' &&
+    body.endTime <= body.startTime
+  ) {
+    errors.push('endTime must be after startTime');
+  }
+  if (!body.bookerName || typeof body.bookerName !== 'string' || body.bookerName.trim() === '') {
+    errors.push('bookerName is required');
+  }
+  if (!body.apartment || typeof body.apartment !== 'string' || body.apartment.trim() === '') {
+    errors.push('apartment is required');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  // Overlap check
+  const overlapResult = await c.env.DB.prepare(
+    'SELECT COUNT(*) as cnt FROM bookings WHERE category = ? AND date = ? AND start_time < ? AND end_time > ?',
+  )
+    .bind(body.category as string, body.date as string, body.endTime as string, body.startTime as string)
+    .first<{ cnt: number }>();
+
+  if (overlapResult && overlapResult.cnt > 0) {
+    return c.json({ error: 'Booking overlaps with an existing booking' }, 409);
+  }
+
+  const id = crypto.randomUUID();
+  const defaults = BOOKING_CATEGORY_DEFAULTS[body.category as string] ?? {
+    title: 'Varaus',
+    location: '',
+  };
+  const title =
+    body.title && typeof body.title === 'string' && body.title.trim() !== ''
+      ? body.title.trim()
+      : defaults.title;
+  const location =
+    body.location && typeof body.location === 'string' && body.location.trim() !== ''
+      ? body.location.trim()
+      : defaults.location;
+
+  await c.env.DB.prepare(
+    `INSERT INTO bookings (id, title, date, start_time, end_time, category, location, booker_name, apartment)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(
+      id,
+      title,
+      body.date as string,
+      body.startTime as string,
+      body.endTime as string,
+      body.category as string,
+      location,
+      (body.bookerName as string).trim(),
+      (body.apartment as string).trim(),
+    )
+    .run();
+
+  const row = await c.env.DB.prepare('SELECT * FROM bookings WHERE id = ?')
+    .bind(id)
+    .first<BookingRow>();
+
+  return c.json(toBookingResponse(row!), 201);
+});
+
+app.patch('/api/bookings/:id', async (c) => {
+  const id = c.req.param('id');
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const existing = await c.env.DB.prepare('SELECT * FROM bookings WHERE id = ?')
+    .bind(id)
+    .first<BookingRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  const errors: string[] = [];
+  if (body.category !== undefined && !VALID_BOOKING_CATEGORIES.includes(body.category as string)) {
+    errors.push('invalid category');
+  }
+  if (body.date !== undefined && (typeof body.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.date))) {
+    errors.push('invalid date format (YYYY-MM-DD)');
+  }
+  if (body.startTime !== undefined && (typeof body.startTime !== 'string' || !/^\d{2}:\d{2}$/.test(body.startTime))) {
+    errors.push('invalid startTime format (HH:mm)');
+  }
+  if (body.endTime !== undefined && (typeof body.endTime !== 'string' || !/^\d{2}:\d{2}$/.test(body.endTime))) {
+    errors.push('invalid endTime format (HH:mm)');
+  }
+
+  const newStartTime = (body.startTime as string | undefined) ?? existing.start_time;
+  const newEndTime = (body.endTime as string | undefined) ?? existing.end_time;
+  if (newEndTime <= newStartTime) {
+    errors.push('endTime must be after startTime');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  // Overlap check with new values (exclude self)
+  const newCategory = (body.category as string | undefined) ?? existing.category;
+  const newDate = (body.date as string | undefined) ?? existing.date;
+
+  const overlapResult = await c.env.DB.prepare(
+    'SELECT COUNT(*) as cnt FROM bookings WHERE category = ? AND date = ? AND start_time < ? AND end_time > ? AND id != ?',
+  )
+    .bind(newCategory, newDate, newEndTime, newStartTime, id)
+    .first<{ cnt: number }>();
+
+  if (overlapResult && overlapResult.cnt > 0) {
+    return c.json({ error: 'Booking overlaps with an existing booking' }, 409);
+  }
+
+  // Build dynamic UPDATE
+  const updates: string[] = [];
+  const params: (string | number)[] = [];
+
+  if (body.category !== undefined) {
+    updates.push('category = ?');
+    params.push(body.category as string);
+  }
+  if (body.date !== undefined) {
+    updates.push('date = ?');
+    params.push(body.date as string);
+  }
+  if (body.startTime !== undefined) {
+    updates.push('start_time = ?');
+    params.push(body.startTime as string);
+  }
+  if (body.endTime !== undefined) {
+    updates.push('end_time = ?');
+    params.push(body.endTime as string);
+  }
+  if (body.title !== undefined) {
+    updates.push('title = ?');
+    params.push((body.title as string).trim());
+  }
+  if (body.location !== undefined) {
+    updates.push('location = ?');
+    params.push((body.location as string).trim());
+  }
+
+  if (updates.length > 0) {
+    params.push(id);
+    await c.env.DB.prepare(`UPDATE bookings SET ${updates.join(', ')} WHERE id = ?`)
+      .bind(...params)
+      .run();
+  }
+
+  const row = await c.env.DB.prepare('SELECT * FROM bookings WHERE id = ?')
+    .bind(id)
+    .first<BookingRow>();
+
+  return c.json(toBookingResponse(row!));
+});
+
+app.delete('/api/bookings/:id', async (c) => {
+  const id = c.req.param('id');
+
+  const existing = await c.env.DB.prepare('SELECT * FROM bookings WHERE id = ?')
+    .bind(id)
+    .first<BookingRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  await c.env.DB.prepare('DELETE FROM bookings WHERE id = ?').bind(id).run();
+
+  return c.json({ success: true });
+});
+
 // --- Events ---
 
 app.get('/api/events', async (c) => {

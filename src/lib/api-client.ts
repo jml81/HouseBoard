@@ -75,6 +75,27 @@ export interface UpdateMarketplaceStatusInput {
   status: ItemStatus;
 }
 
+export interface CreateBookingInput {
+  category: BookingCategory;
+  date: string;
+  startTime: string;
+  endTime: string;
+  title?: string;
+  location?: string;
+  bookerName: string;
+  apartment: string;
+}
+
+export interface UpdateBookingInput {
+  id: string;
+  category?: BookingCategory;
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+  title?: string;
+  location?: string;
+}
+
 export const apiClient = {
   announcements: {
     list(category?: AnnouncementCategory): Promise<Announcement[]> {
@@ -103,6 +124,24 @@ export const apiClient = {
     },
     get(id: string): Promise<Booking> {
       return fetchJson<Booking>(`/api/bookings/${encodeURIComponent(id)}`);
+    },
+    create(input: CreateBookingInput): Promise<Booking> {
+      return mutateJson<Booking>('/api/bookings', {
+        method: 'POST',
+        body: input,
+      });
+    },
+    update(input: UpdateBookingInput): Promise<Booking> {
+      const { id, ...data } = input;
+      return mutateJson<Booking>(`/api/bookings/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: data,
+      });
+    },
+    delete(id: string): Promise<{ success: boolean }> {
+      return mutateJson<{ success: boolean }>(`/api/bookings/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
     },
   },
 
