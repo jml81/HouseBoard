@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { basicAuth } from 'hono/basic-auth';
 
 interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
@@ -437,6 +438,15 @@ const VALID_MARKETPLACE_STATUSES = ['available', 'sold', 'reserved'];
 // --- App ---
 
 const app = new Hono<{ Bindings: Env }>();
+
+// Basic authentication
+app.use(
+  '*',
+  basicAuth({
+    username: 'demo',
+    password: 'Talo2026!',
+  }),
+);
 
 // Health check
 app.get('/api/health', (c) => {
