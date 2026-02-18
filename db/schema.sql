@@ -157,6 +157,7 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL,
   apartment TEXT NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('resident','manager')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','locked')),
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

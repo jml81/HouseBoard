@@ -11,6 +11,7 @@ import {
   Building2,
   Contact,
   FileText,
+  UserCog,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/brand/logo';
@@ -37,6 +38,7 @@ const plusNavItems: NavItem[] = [
   { to: '/plus/hallitus', labelKey: 'nav_plus.board', icon: Users },
   { to: '/plus/huoneistot', labelKey: 'nav_plus.apartments', icon: Building2 },
   { to: '/plus/yhteystiedot', labelKey: 'nav_plus.contacts', icon: Contact },
+  { to: '/plus/kayttajat', labelKey: 'nav_plus.users', icon: UserCog },
 ];
 
 export function Sidebar(): React.JSX.Element {

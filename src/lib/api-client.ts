@@ -22,6 +22,11 @@ import type {
   ItemStatus,
   ApartmentPayment,
   PaymentStatus,
+  User,
+  CreateUserInput,
+  UpdateUserInput,
+  UpdateProfileInput,
+  ChangePasswordInput,
 } from '@/types';
 import { useAuthStore } from '@/stores/auth-store';
 
@@ -315,6 +320,45 @@ export const apiClient = {
     delete(id: string): Promise<{ success: boolean }> {
       return mutateJson<{ success: boolean }>(`/api/marketplace-items/${encodeURIComponent(id)}`, {
         method: 'DELETE',
+      });
+    },
+  },
+
+  users: {
+    list(): Promise<User[]> {
+      return fetchJson<User[]>('/api/users');
+    },
+    create(input: CreateUserInput): Promise<User> {
+      return mutateJson<User>('/api/users', {
+        method: 'POST',
+        body: input,
+      });
+    },
+    update(input: UpdateUserInput): Promise<User> {
+      const { id, ...data } = input;
+      return mutateJson<User>(`/api/users/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: data,
+      });
+    },
+    delete(id: string): Promise<{ success: boolean }> {
+      return mutateJson<{ success: boolean }>(`/api/users/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+    },
+  },
+
+  profile: {
+    update(input: UpdateProfileInput): Promise<User> {
+      return mutateJson<User>('/api/profile', {
+        method: 'PATCH',
+        body: input,
+      });
+    },
+    changePassword(input: ChangePasswordInput): Promise<{ success: boolean }> {
+      return mutateJson<{ success: boolean }>('/api/profile/change-password', {
+        method: 'POST',
+        body: input,
       });
     },
   },

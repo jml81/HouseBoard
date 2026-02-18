@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Logo } from '@/components/brand/logo';
 import { useLogin } from '@/hooks/use-auth';
+import { ApiError } from '@/lib/api-client';
 
 export function LoginForm(): React.JSX.Element {
   const { t } = useTranslation();
@@ -26,6 +27,11 @@ export function LoginForm(): React.JSX.Element {
       },
     );
   };
+
+  const isLocked =
+    loginMutation.isError &&
+    loginMutation.error instanceof ApiError &&
+    loginMutation.error.status === 403;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -60,7 +66,7 @@ export function LoginForm(): React.JSX.Element {
             </div>
             {loginMutation.isError && (
               <p className="text-sm text-destructive" role="alert">
-                {t('auth.loginError')}
+                {isLocked ? t('auth.accountLocked') : t('auth.loginError')}
               </p>
             )}
             <Button type="submit" className="w-full" disabled={loginMutation.isPending}>

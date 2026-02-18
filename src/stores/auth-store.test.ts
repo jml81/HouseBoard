@@ -10,6 +10,8 @@ const MOCK_RESIDENT_RESPONSE: AuthResponse = {
     email: 'asukas@talo.fi',
     apartment: 'A 12',
     role: 'resident',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00Z',
   },
 };
 
@@ -21,6 +23,8 @@ const MOCK_MANAGER_RESPONSE: AuthResponse = {
     email: 'isannoitsija@talo.fi',
     apartment: 'A 4',
     role: 'manager',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00Z',
   },
 };
 

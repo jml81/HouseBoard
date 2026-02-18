@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
-import { Bell, Globe, LogOut, Menu, Shield } from 'lucide-react';
+import { Bell, Globe, LogOut, Menu, Shield, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Logo } from '@/components/brand/logo';
@@ -9,6 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
@@ -103,30 +104,33 @@ export function Header(): React.JSX.Element {
 
         <Separator orientation="vertical" className="mx-1 h-6" />
 
-        {/* User name */}
-        {user && <span className="hidden text-sm font-medium md:inline">{user.name}</span>}
-
-        {/* User avatar */}
-        <Avatar className="size-8">
-          <AvatarFallback className="bg-hb-accent-light text-sm font-medium text-hb-primary">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-
-        {/* Logout */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLogout}
-              aria-label={t('auth.logout')}
+        {/* User dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted"
             >
-              <LogOut className="size-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('auth.logout')}</TooltipContent>
-        </Tooltip>
+              {user && <span className="hidden text-sm font-medium md:inline">{user.name}</span>}
+              <Avatar className="size-8">
+                <AvatarFallback className="bg-hb-accent-light text-sm font-medium text-hb-primary">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => void navigate({ to: '/profiili' })}>
+              <User className="mr-2 size-4" />
+              {t('nav.profile')}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 size-4" />
+              {t('auth.logout')}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
