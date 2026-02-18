@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '@/test-utils';
+import { renderWithProviders, setTestAuth } from '@/test-utils';
+import { useAuthStore } from '@/stores/auth-store';
 import { EventsPage } from './events-page';
 
 const mockEvents = [
@@ -16,6 +17,7 @@ const mockEvents = [
     organizer: 'Hallitus',
     interestedCount: 18,
     status: 'upcoming',
+    createdBy: 'u2',
   },
   {
     id: 'e2',
@@ -28,6 +30,7 @@ const mockEvents = [
     organizer: 'Hallitus',
     interestedCount: 22,
     status: 'upcoming',
+    createdBy: 'u2',
   },
   {
     id: 'e5',
@@ -40,6 +43,7 @@ const mockEvents = [
     organizer: 'Pihatoimikunta',
     interestedCount: 28,
     status: 'past',
+    createdBy: null,
   },
   {
     id: 'e6',
@@ -52,6 +56,7 @@ const mockEvents = [
     organizer: 'Hallitus',
     interestedCount: 15,
     status: 'past',
+    createdBy: null,
   },
 ];
 
@@ -71,6 +76,12 @@ describe('EventsPage', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+    useAuthStore.setState({
+      isAuthenticated: false,
+      isManager: false,
+      user: null,
+      token: null,
+    });
   });
 
   it('renders page header', () => {
@@ -105,5 +116,18 @@ describe('EventsPage', () => {
     expect(await screen.findByText('Piha-alue')).toBeInTheDocument();
     expect(screen.getAllByText(/Hallitus/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/18 kiinnostunutta/)).toBeInTheDocument();
+  });
+
+  it('shows create button for manager', async () => {
+    setTestAuth({ isManager: true });
+    renderWithProviders(<EventsPage />);
+    expect(await screen.findByText('Uusi tapahtuma')).toBeInTheDocument();
+  });
+
+  it('does not show create button for resident', async () => {
+    setTestAuth({ isManager: false });
+    renderWithProviders(<EventsPage />);
+    await screen.findByText('Kevättalkoot');
+    expect(screen.queryByText('Uusi tapahtuma')).not.toBeInTheDocument();
   });
 });

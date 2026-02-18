@@ -40,6 +40,7 @@ const mockEvents = [
     organizer: 'Hallitus',
     interestedCount: 18,
     status: 'upcoming',
+    createdBy: 'u2',
   },
 ];
 

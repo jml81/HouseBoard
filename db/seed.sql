@@ -135,13 +135,13 @@ INSERT INTO bookings (id, title, date, start_time, end_time, category, location,
 -- Events
 DELETE FROM events;
 
-INSERT INTO events (id, title, description, date, start_time, end_time, location, organizer, interested_count, status) VALUES
-('e1', 'Kevättalkoot', 'Perinteinen kevätsiivous piha-alueella. Haravoidaan, siivotaan ja laitetaan piha kesäkuntoon yhdessä!', '2026-03-15', '10:00', '15:00', 'Piha-alue', 'Hallitus', 18, 'upcoming'),
-('e2', 'Yhtiökokous', 'As Oy Mäntyrinteen varsinainen yhtiökokous. Esityslistalla mm. tilinpäätös, putkiremontin rahoitus ja hallituksen valinta.', '2026-03-25', '18:00', '20:00', 'Kerhohuone', 'Hallitus', 22, 'upcoming'),
-('e3', 'Pihajuhlat', 'Kesäkauden avajaisjuhlat pihalla! Grillaus, musiikkia ja ohjelmaa lapsille.', '2026-05-30', '14:00', '20:00', 'Piha-alue & grillikatos', 'Pihatoimikunta', 35, 'upcoming'),
-('e4', 'Hallituksen kokous', 'Hallituksen kuukausikokous. Aiheina mm. putkiremontin valmistelu ja talousarvion seuranta.', '2026-03-10', '18:00', '19:30', 'Kerhohuone', 'Hallituksen puheenjohtaja', 5, 'upcoming'),
-('e5', 'Jouluglögihetki', 'Perinteinen jouluglögihetki kerhohuoneessa. Tarjolla glögiä, pipareita ja hyvää seuraa.', '2025-12-14', '16:00', '19:00', 'Kerhohuone', 'Pihatoimikunta', 28, 'past'),
-('e6', 'Syystalkoot', 'Syksyn siivouspäivä. Haravoidaan lehdet ja valmistellaan piha talvea varten.', '2025-10-11', '10:00', '14:00', 'Piha-alue', 'Hallitus', 15, 'past');
+INSERT INTO events (id, title, description, date, start_time, end_time, location, organizer, interested_count, status, created_by) VALUES
+('e1', 'Kevättalkoot', 'Perinteinen kevätsiivous piha-alueella. Haravoidaan, siivotaan ja laitetaan piha kesäkuntoon yhdessä!', '2026-03-15', '10:00', '15:00', 'Piha-alue', 'Hallitus', 18, 'upcoming', 'u2'),
+('e2', 'Yhtiökokous', 'As Oy Mäntyrinteen varsinainen yhtiökokous. Esityslistalla mm. tilinpäätös, putkiremontin rahoitus ja hallituksen valinta.', '2026-03-25', '18:00', '20:00', 'Kerhohuone', 'Hallitus', 22, 'upcoming', 'u2'),
+('e3', 'Pihajuhlat', 'Kesäkauden avajaisjuhlat pihalla! Grillaus, musiikkia ja ohjelmaa lapsille.', '2026-05-30', '14:00', '20:00', 'Piha-alue & grillikatos', 'Pihatoimikunta', 35, 'upcoming', 'u2'),
+('e4', 'Hallituksen kokous', 'Hallituksen kuukausikokous. Aiheina mm. putkiremontin valmistelu ja talousarvion seuranta.', '2026-03-10', '18:00', '19:30', 'Kerhohuone', 'Hallituksen puheenjohtaja', 5, 'upcoming', 'u2'),
+('e5', 'Jouluglögihetki', 'Perinteinen jouluglögihetki kerhohuoneessa. Tarjolla glögiä, pipareita ja hyvää seuraa.', '2025-12-14', '16:00', '19:00', 'Kerhohuone', 'Pihatoimikunta', 28, 'past', NULL),
+('e6', 'Syystalkoot', 'Syksyn siivouspäivä. Haravoidaan lehdet ja valmistellaan piha talvea varten.', '2025-10-11', '10:00', '14:00', 'Piha-alue', 'Hallitus', 15, 'past', NULL);
 
 -- Materials
 DELETE FROM materials;

@@ -13,6 +13,7 @@ export const events: HousingEvent[] = [
     organizer: 'Hallitus',
     interestedCount: 18,
     status: 'upcoming',
+    createdBy: null,
   },
   {
     id: 'e2',
@@ -26,6 +27,7 @@ export const events: HousingEvent[] = [
     organizer: 'Hallitus',
     interestedCount: 22,
     status: 'upcoming',
+    createdBy: null,
   },
   {
     id: 'e3',
@@ -38,6 +40,7 @@ export const events: HousingEvent[] = [
     organizer: 'Pihatoimikunta',
     interestedCount: 35,
     status: 'upcoming',
+    createdBy: null,
   },
   {
     id: 'e4',
@@ -51,6 +54,7 @@ export const events: HousingEvent[] = [
     organizer: 'Hallituksen puheenjohtaja',
     interestedCount: 5,
     status: 'upcoming',
+    createdBy: null,
   },
   {
     id: 'e5',
@@ -64,6 +68,7 @@ export const events: HousingEvent[] = [
     organizer: 'Pihatoimikunta',
     interestedCount: 28,
     status: 'past',
+    createdBy: null,
   },
   {
     id: 'e6',
@@ -76,5 +81,6 @@ export const events: HousingEvent[] = [
     organizer: 'Hallitus',
     interestedCount: 15,
     status: 'past',
+    createdBy: null,
   },
 ];

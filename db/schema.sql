@@ -50,7 +50,8 @@ CREATE TABLE IF NOT EXISTS events (
   location TEXT NOT NULL,
   organizer TEXT NOT NULL,
   interested_count INTEGER NOT NULL DEFAULT 0,
-  status TEXT NOT NULL CHECK (status IN ('upcoming','past'))
+  status TEXT NOT NULL CHECK (status IN ('upcoming','past')),
+  created_by TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_events_status_date ON events(status, date);

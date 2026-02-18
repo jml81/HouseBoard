@@ -142,6 +142,28 @@ export interface UpdateBookingInput {
   location?: string;
 }
 
+export interface CreateEventInput {
+  title: string;
+  description: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  organizer: string;
+}
+
+export interface UpdateEventInput {
+  id: string;
+  title?: string;
+  description?: string;
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+  location?: string;
+  organizer?: string;
+  status?: EventStatus;
+}
+
 export interface CreateApartmentPaymentInput {
   apartmentId: string;
   paymentStatus: PaymentStatus;
@@ -245,6 +267,24 @@ export const apiClient = {
     },
     get(id: string): Promise<HousingEvent> {
       return fetchJson<HousingEvent>(`/api/events/${encodeURIComponent(id)}`);
+    },
+    create(input: CreateEventInput): Promise<HousingEvent> {
+      return mutateJson<HousingEvent>('/api/events', {
+        method: 'POST',
+        body: input,
+      });
+    },
+    update(input: UpdateEventInput): Promise<HousingEvent> {
+      const { id, ...data } = input;
+      return mutateJson<HousingEvent>(`/api/events/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: data,
+      });
+    },
+    delete(id: string): Promise<{ success: boolean }> {
+      return mutateJson<{ success: boolean }>(`/api/events/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
     },
   },
 

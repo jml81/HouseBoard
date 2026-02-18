@@ -1,9 +1,16 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createElement } from 'react';
 import type { ReactNode } from 'react';
-import { useEvents, useEvent, eventKeys } from './use-events';
+import {
+  useEvents,
+  useEvent,
+  useCreateEvent,
+  useUpdateEvent,
+  useDeleteEvent,
+  eventKeys,
+} from './use-events';
 
 const mockEvents = [
   {
@@ -17,6 +24,7 @@ const mockEvents = [
     organizer: 'Hallitus',
     interestedCount: 18,
     status: 'upcoming',
+    createdBy: 'u2',
   },
 ];
 
@@ -85,6 +93,112 @@ describe('useEvent', () => {
     await waitFor(() => {
       expect(result.current.data).toEqual(mockItem);
     });
+  });
+});
+
+describe('useCreateEvent', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('sends POST and returns created event', async () => {
+    const created = {
+      id: 'new-1',
+      title: 'Uusi tapahtuma',
+      description: 'Kuvaus',
+      date: '2026-04-01',
+      startTime: '10:00',
+      endTime: '12:00',
+      location: 'Piha-alue',
+      organizer: 'Hallitus',
+      interestedCount: 0,
+      status: 'upcoming',
+      createdBy: 'u2',
+    };
+    mockFetch(created);
+
+    const { result } = renderHook(() => useCreateEvent(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      const response = await result.current.mutateAsync({
+        title: 'Uusi tapahtuma',
+        description: 'Kuvaus',
+        date: '2026-04-01',
+        startTime: '10:00',
+        endTime: '12:00',
+        location: 'Piha-alue',
+        organizer: 'Hallitus',
+      });
+      expect(response).toEqual(created);
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/events',
+      expect.objectContaining({
+        method: 'POST',
+      }),
+    );
+  });
+});
+
+describe('useUpdateEvent', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('sends PATCH and returns updated event', async () => {
+    const updated = { ...mockEvents[0], title: 'Päivitetty tapahtuma' };
+    mockFetch(updated);
+
+    const { result } = renderHook(() => useUpdateEvent(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      const response = await result.current.mutateAsync({
+        id: 'e1',
+        title: 'Päivitetty tapahtuma',
+      });
+      expect(response).toEqual(updated);
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/events/e1',
+      expect.objectContaining({
+        method: 'PATCH',
+      }),
+    );
+  });
+});
+
+describe('useDeleteEvent', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('sends DELETE and returns success', async () => {
+    mockFetch({ success: true });
+
+    const { result } = renderHook(() => useDeleteEvent(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      const response = await result.current.mutateAsync('e1');
+      expect(response).toEqual({ success: true });
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/events/e1',
+      expect.objectContaining({
+        method: 'DELETE',
+      }),
+    );
   });
 });
 

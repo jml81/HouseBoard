@@ -15,6 +15,7 @@ const mockEvents = [
     organizer: 'Hallitus',
     interestedCount: 18,
     status: 'upcoming',
+    createdBy: 'u2',
   },
   {
     id: 'e5',
@@ -27,6 +28,7 @@ const mockEvents = [
     organizer: 'Pihatoimikunta',
     interestedCount: 28,
     status: 'past',
+    createdBy: null,
   },
 ];
 

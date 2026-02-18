@@ -66,6 +66,7 @@ interface EventRow {
   organizer: string;
   interested_count: number;
   status: string;
+  created_by: string | null;
 }
 
 interface MaterialRow {
@@ -235,6 +236,7 @@ interface EventResponse {
   organizer: string;
   interestedCount: number;
   status: string;
+  createdBy: string | null;
 }
 
 interface MaterialResponse {
@@ -375,6 +377,7 @@ function toEventResponse(row: EventRow): EventResponse {
     organizer: row.organizer,
     interestedCount: row.interested_count,
     status: row.status,
+    createdBy: row.created_by,
   };
 }
 
@@ -1129,6 +1132,186 @@ app.get('/api/events/:id', async (c) => {
   return c.json(toEventResponse(row));
 });
 
+app.post('/api/events', requireManager(), async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const errors: string[] = [];
+  if (!body.title || typeof body.title !== 'string' || body.title.trim() === '') {
+    errors.push('title is required');
+  }
+  if (!body.description || typeof body.description !== 'string' || body.description.trim() === '') {
+    errors.push('description is required');
+  }
+  if (!body.date || typeof body.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.date)) {
+    errors.push('date is required (YYYY-MM-DD)');
+  }
+  if (!body.startTime || typeof body.startTime !== 'string' || !/^\d{2}:\d{2}$/.test(body.startTime)) {
+    errors.push('startTime is required (HH:mm)');
+  }
+  if (!body.endTime || typeof body.endTime !== 'string' || !/^\d{2}:\d{2}$/.test(body.endTime)) {
+    errors.push('endTime is required (HH:mm)');
+  }
+  if (
+    body.startTime &&
+    body.endTime &&
+    typeof body.startTime === 'string' &&
+    typeof body.endTime === 'string' &&
+    body.endTime <= body.startTime
+  ) {
+    errors.push('endTime must be after startTime');
+  }
+  if (!body.location || typeof body.location !== 'string' || body.location.trim() === '') {
+    errors.push('location is required');
+  }
+  if (!body.organizer || typeof body.organizer !== 'string' || body.organizer.trim() === '') {
+    errors.push('organizer is required');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const id = crypto.randomUUID();
+  const user = c.get('user');
+
+  await c.env.DB.prepare(
+    `INSERT INTO events (id, title, description, date, start_time, end_time, location, organizer, interested_count, status, created_by)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 'upcoming', ?)`,
+  )
+    .bind(
+      id,
+      (body.title as string).trim(),
+      (body.description as string).trim(),
+      body.date as string,
+      body.startTime as string,
+      body.endTime as string,
+      (body.location as string).trim(),
+      (body.organizer as string).trim(),
+      user.sub,
+    )
+    .run();
+
+  const row = await c.env.DB.prepare('SELECT * FROM events WHERE id = ?')
+    .bind(id)
+    .first<EventRow>();
+
+  return c.json(toEventResponse(row!), 201);
+});
+
+app.patch('/api/events/:id', requireManager(), async (c) => {
+  const id = c.req.param('id');
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const existing = await c.env.DB.prepare('SELECT * FROM events WHERE id = ?')
+    .bind(id)
+    .first<EventRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  const errors: string[] = [];
+  if (body.title !== undefined && (typeof body.title !== 'string' || body.title.trim() === '')) {
+    errors.push('title cannot be empty');
+  }
+  if (body.description !== undefined && (typeof body.description !== 'string' || body.description.trim() === '')) {
+    errors.push('description cannot be empty');
+  }
+  if (body.date !== undefined && (typeof body.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.date))) {
+    errors.push('invalid date format (YYYY-MM-DD)');
+  }
+  if (body.startTime !== undefined && (typeof body.startTime !== 'string' || !/^\d{2}:\d{2}$/.test(body.startTime))) {
+    errors.push('invalid startTime format (HH:mm)');
+  }
+  if (body.endTime !== undefined && (typeof body.endTime !== 'string' || !/^\d{2}:\d{2}$/.test(body.endTime))) {
+    errors.push('invalid endTime format (HH:mm)');
+  }
+  if (body.location !== undefined && (typeof body.location !== 'string' || body.location.trim() === '')) {
+    errors.push('location cannot be empty');
+  }
+  if (body.organizer !== undefined && (typeof body.organizer !== 'string' || body.organizer.trim() === '')) {
+    errors.push('organizer cannot be empty');
+  }
+  if (body.status !== undefined && !VALID_EVENT_STATUSES.includes(body.status as string)) {
+    errors.push('invalid status');
+  }
+
+  const newStartTime = (body.startTime as string | undefined) ?? existing.start_time;
+  const newEndTime = (body.endTime as string | undefined) ?? existing.end_time;
+  if (newEndTime <= newStartTime) {
+    errors.push('endTime must be after startTime');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const updates: string[] = [];
+  const params: (string | number)[] = [];
+
+  if (body.title !== undefined) {
+    updates.push('title = ?');
+    params.push((body.title as string).trim());
+  }
+  if (body.description !== undefined) {
+    updates.push('description = ?');
+    params.push((body.description as string).trim());
+  }
+  if (body.date !== undefined) {
+    updates.push('date = ?');
+    params.push(body.date as string);
+  }
+  if (body.startTime !== undefined) {
+    updates.push('start_time = ?');
+    params.push(body.startTime as string);
+  }
+  if (body.endTime !== undefined) {
+    updates.push('end_time = ?');
+    params.push(body.endTime as string);
+  }
+  if (body.location !== undefined) {
+    updates.push('location = ?');
+    params.push((body.location as string).trim());
+  }
+  if (body.organizer !== undefined) {
+    updates.push('organizer = ?');
+    params.push((body.organizer as string).trim());
+  }
+  if (body.status !== undefined) {
+    updates.push('status = ?');
+    params.push(body.status as string);
+  }
+
+  if (updates.length > 0) {
+    params.push(id);
+    await c.env.DB.prepare(`UPDATE events SET ${updates.join(', ')} WHERE id = ?`)
+      .bind(...params)
+      .run();
+  }
+
+  const row = await c.env.DB.prepare('SELECT * FROM events WHERE id = ?')
+    .bind(id)
+    .first<EventRow>();
+
+  return c.json(toEventResponse(row!));
+});
+
+app.delete('/api/events/:id', requireManager(), async (c) => {
+  const id = c.req.param('id');
+
+  const existing = await c.env.DB.prepare('SELECT * FROM events WHERE id = ?')
+    .bind(id)
+    .first<EventRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  await c.env.DB.prepare('DELETE FROM events WHERE id = ?').bind(id).run();
+
+  return c.json({ success: true });
+});
+
 // --- Materials ---
 
 app.get('/api/materials', async (c) => {
@@ -1826,6 +2009,9 @@ app.delete('/api/users/:id', requireManager(), async (c) => {
     .bind(id)
     .run();
   await c.env.DB.prepare('UPDATE marketplace_items SET created_by = NULL WHERE created_by = ?')
+    .bind(id)
+    .run();
+  await c.env.DB.prepare('UPDATE events SET created_by = NULL WHERE created_by = ?')
     .bind(id)
     .run();
 

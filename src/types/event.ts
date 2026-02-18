@@ -11,4 +11,5 @@ export interface HousingEvent {
   organizer: string;
   interestedCount: number;
   status: EventStatus;
+  createdBy: string | null;
 }
