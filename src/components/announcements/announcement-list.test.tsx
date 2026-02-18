@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithRouterContext } from '@/test-utils';
+import { useAuthStore } from '@/stores/auth-store';
 import { AnnouncementList } from './announcement-list';
 
 const mockAnnouncements = [
@@ -37,6 +38,7 @@ describe('AnnouncementList', () => {
         }),
       ),
     );
+    useAuthStore.setState({ isManager: false });
   });
 
   afterEach(() => {
@@ -76,5 +78,18 @@ describe('AnnouncementList', () => {
     await renderWithRouterContext(<AnnouncementList />);
     const readMoreLinks = await screen.findAllByText('Lue lisää');
     expect(readMoreLinks.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('does not show create button for non-manager', async () => {
+    await renderWithRouterContext(<AnnouncementList />);
+    await screen.findByText('Kevätsiivous 15.3.2026');
+    expect(screen.queryByText('Uusi tiedote')).not.toBeInTheDocument();
+  });
+
+  it('shows create button for manager', async () => {
+    useAuthStore.setState({ isManager: true });
+    await renderWithRouterContext(<AnnouncementList />);
+    await screen.findByText('Kevätsiivous 15.3.2026');
+    expect(screen.getByText('Uusi tiedote')).toBeInTheDocument();
   });
 });

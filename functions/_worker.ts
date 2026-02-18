@@ -488,6 +488,135 @@ app.get('/api/announcements/:id', async (c) => {
   return c.json(toAnnouncementResponse(row));
 });
 
+app.post('/api/announcements', async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const errors: string[] = [];
+  if (!body.title || typeof body.title !== 'string' || body.title.trim() === '') {
+    errors.push('title is required');
+  }
+  if (!body.summary || typeof body.summary !== 'string' || body.summary.trim() === '') {
+    errors.push('summary is required');
+  }
+  if (!body.content || typeof body.content !== 'string' || body.content.trim() === '') {
+    errors.push('content is required');
+  }
+  if (!body.category || !VALID_ANNOUNCEMENT_CATEGORIES.includes(body.category as string)) {
+    errors.push('invalid category');
+  }
+  if (!body.author || typeof body.author !== 'string' || body.author.trim() === '') {
+    errors.push('author is required');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const id = crypto.randomUUID();
+  const publishedAt = new Date().toISOString().slice(0, 10);
+
+  await c.env.DB.prepare(
+    `INSERT INTO announcements (id, title, summary, content, category, author, published_at, is_new)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 1)`,
+  )
+    .bind(
+      id,
+      (body.title as string).trim(),
+      (body.summary as string).trim(),
+      (body.content as string).trim(),
+      body.category as string,
+      (body.author as string).trim(),
+      publishedAt,
+    )
+    .run();
+
+  const row = await c.env.DB.prepare('SELECT * FROM announcements WHERE id = ?')
+    .bind(id)
+    .first<AnnouncementRow>();
+
+  return c.json(toAnnouncementResponse(row!), 201);
+});
+
+app.patch('/api/announcements/:id', async (c) => {
+  const id = c.req.param('id');
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const existing = await c.env.DB.prepare('SELECT * FROM announcements WHERE id = ?')
+    .bind(id)
+    .first<AnnouncementRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  const errors: string[] = [];
+  if (body.title !== undefined && (typeof body.title !== 'string' || body.title.trim() === '')) {
+    errors.push('title cannot be empty');
+  }
+  if (body.summary !== undefined && (typeof body.summary !== 'string' || body.summary.trim() === '')) {
+    errors.push('summary cannot be empty');
+  }
+  if (body.content !== undefined && (typeof body.content !== 'string' || body.content.trim() === '')) {
+    errors.push('content cannot be empty');
+  }
+  if (body.category !== undefined && !VALID_ANNOUNCEMENT_CATEGORIES.includes(body.category as string)) {
+    errors.push('invalid category');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const updates: string[] = [];
+  const params: (string | number)[] = [];
+
+  if (body.title !== undefined) {
+    updates.push('title = ?');
+    params.push((body.title as string).trim());
+  }
+  if (body.summary !== undefined) {
+    updates.push('summary = ?');
+    params.push((body.summary as string).trim());
+  }
+  if (body.content !== undefined) {
+    updates.push('content = ?');
+    params.push((body.content as string).trim());
+  }
+  if (body.category !== undefined) {
+    updates.push('category = ?');
+    params.push(body.category as string);
+  }
+
+  if (updates.length > 0) {
+    params.push(id);
+    await c.env.DB.prepare(`UPDATE announcements SET ${updates.join(', ')} WHERE id = ?`)
+      .bind(...params)
+      .run();
+  }
+
+  const row = await c.env.DB.prepare('SELECT * FROM announcements WHERE id = ?')
+    .bind(id)
+    .first<AnnouncementRow>();
+
+  return c.json(toAnnouncementResponse(row!));
+});
+
+app.delete('/api/announcements/:id', async (c) => {
+  const id = c.req.param('id');
+
+  const existing = await c.env.DB.prepare('SELECT * FROM announcements WHERE id = ?')
+    .bind(id)
+    .first<AnnouncementRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  await c.env.DB.prepare('DELETE FROM announcements WHERE id = ?').bind(id).run();
+
+  return c.json({ success: true });
+});
+
 // --- Building ---
 
 app.get('/api/building', async (c) => {
