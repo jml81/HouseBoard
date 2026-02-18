@@ -1,11 +1,36 @@
-import { Link } from '@tanstack/react-router';
+import { useState } from 'react';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, CalendarDays, User, Home, MessageCircle } from 'lucide-react';
+import {
+  ArrowLeft,
+  CalendarDays,
+  User,
+  Home,
+  MessageCircle,
+  Trash2,
+  CheckCircle,
+  Clock,
+  ShoppingCart,
+} from 'lucide-react';
+import { toast } from 'sonner';
 import type { MarketplaceItem } from '@/types';
 import { formatDate } from '@/lib/date-utils';
+import { useAuthStore } from '@/stores/auth-store';
+import {
+  useUpdateMarketplaceItemStatus,
+  useDeleteMarketplaceItem,
+} from '@/hooks/use-marketplace-items';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { MarketplaceCategoryBadge } from './category-badge';
 import { CategoryIcon } from './category-icon';
 
@@ -15,6 +40,35 @@ interface MarketplaceItemDetailProps {
 
 export function MarketplaceItemDetail({ item }: MarketplaceItemDetailProps): React.JSX.Element {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+  const isManager = useAuthStore((s) => s.isManager);
+  const updateStatus = useUpdateMarketplaceItemStatus();
+  const deleteItem = useDeleteMarketplaceItem();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const isOwner = user.name === item.seller.name && user.apartment === item.seller.apartment;
+  const canManage = isOwner || isManager;
+
+  async function handleStatusChange(newStatus: 'available' | 'sold' | 'reserved'): Promise<void> {
+    try {
+      await updateStatus.mutateAsync({ id: item.id, status: newStatus });
+      toast.success(t('marketplace.statusUpdateSuccess'));
+    } catch {
+      toast.error(t('marketplace.statusUpdateError'));
+    }
+  }
+
+  async function handleDelete(): Promise<void> {
+    try {
+      await deleteItem.mutateAsync(item.id);
+      toast.success(t('marketplace.deleteSuccess'));
+      setDeleteDialogOpen(false);
+      void navigate({ to: '/kirpputori' });
+    } catch {
+      toast.error(t('marketplace.deleteError'));
+    }
+  }
 
   return (
     <div className="p-6">
@@ -67,11 +121,120 @@ export function MarketplaceItemDetail({ item }: MarketplaceItemDetailProps): Rea
 
         <div className="whitespace-pre-line text-sm leading-relaxed">{item.description}</div>
 
-        <Button className="gap-2 bg-hb-accent hover:bg-hb-accent/90">
-          <MessageCircle className="size-4" />
-          {t('marketplace.contact')}
-        </Button>
+        {canManage && (
+          <div className="flex flex-wrap gap-2">
+            {item.status === 'available' && (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1"
+                  disabled={updateStatus.isPending}
+                  onClick={() => {
+                    void handleStatusChange('sold');
+                  }}
+                >
+                  <CheckCircle className="size-4" />
+                  {t('marketplace.markSold')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1"
+                  disabled={updateStatus.isPending}
+                  onClick={() => {
+                    void handleStatusChange('reserved');
+                  }}
+                >
+                  <Clock className="size-4" />
+                  {t('marketplace.markReserved')}
+                </Button>
+              </>
+            )}
+            {item.status === 'reserved' && (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1"
+                  disabled={updateStatus.isPending}
+                  onClick={() => {
+                    void handleStatusChange('sold');
+                  }}
+                >
+                  <CheckCircle className="size-4" />
+                  {t('marketplace.markSold')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1"
+                  disabled={updateStatus.isPending}
+                  onClick={() => {
+                    void handleStatusChange('available');
+                  }}
+                >
+                  <ShoppingCart className="size-4" />
+                  {t('marketplace.markAvailable')}
+                </Button>
+              </>
+            )}
+            {item.status === 'sold' && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1"
+                disabled={updateStatus.isPending}
+                onClick={() => {
+                  void handleStatusChange('available');
+                }}
+              >
+                <ShoppingCart className="size-4" />
+                {t('marketplace.markAvailable')}
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="destructive"
+              className="gap-1"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              <Trash2 className="size-4" />
+              {t('marketplace.deleteItem')}
+            </Button>
+          </div>
+        )}
+
+        {!canManage && (
+          <Button className="gap-2 bg-hb-accent hover:bg-hb-accent/90">
+            <MessageCircle className="size-4" />
+            {t('marketplace.contact')}
+          </Button>
+        )}
       </div>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('marketplace.deleteItem')}</DialogTitle>
+            <DialogDescription>{t('marketplace.deleteConfirm')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={deleteItem.isPending}
+              onClick={() => {
+                void handleDelete();
+              }}
+            >
+              {t('common.delete')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

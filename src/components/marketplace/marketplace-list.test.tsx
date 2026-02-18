@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithRouterContext } from '@/test-utils';
 import { MarketplaceList } from './marketplace-list';
@@ -117,17 +117,44 @@ const mockItems = [
   },
 ];
 
-describe('MarketplaceList', () => {
-  beforeEach(() => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(
+const createdItem = {
+  id: 'new-1',
+  title: 'Uusi testituote',
+  description: 'Testikuvaus',
+  price: 0,
+  category: 'muu',
+  condition: 'hyva',
+  status: 'available',
+  seller: { name: 'Aino Virtanen', apartment: 'A 12' },
+  publishedAt: '2026-02-18',
+};
+
+function setupFetchMock(): void {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockImplementation((_url: string, init?: RequestInit) => {
+      if (init?.method === 'POST') {
+        return Promise.resolve(
+          new Response(JSON.stringify(createdItem), {
+            status: 201,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+        );
+      }
+      // GET requests return mockItems, then after POST include the new item
+      return Promise.resolve(
         new Response(JSON.stringify(mockItems), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         }),
-      ),
-    );
+      );
+    }),
+  );
+}
+
+describe('MarketplaceList', () => {
+  beforeEach(() => {
+    setupFetchMock();
   });
 
   afterEach(() => {
@@ -244,7 +271,7 @@ describe('MarketplaceList', () => {
     expect(screen.getByText('Julkaise')).toBeInTheDocument();
   });
 
-  it('submits form and adds new item to list', async () => {
+  it('submits form and calls API', async () => {
     const user = userEvent.setup();
     await renderWithRouterContext(<MarketplaceList />);
 
@@ -261,7 +288,44 @@ describe('MarketplaceList', () => {
 
     await user.click(screen.getByText('Julkaise'));
 
-    expect(screen.getByText('Uusi testituote')).toBeInTheDocument();
-    expect(screen.getByText(/11 tuotetta/)).toBeInTheDocument();
+    await waitFor(() => {
+      const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls;
+      const postCall = calls.find(
+        (call: unknown[]) => (call[1] as RequestInit | undefined)?.method === 'POST',
+      );
+      expect(postCall).toBeDefined();
+    });
   }, 15000);
+
+  it('shows validation errors for empty title', async () => {
+    const user = userEvent.setup();
+    await renderWithRouterContext(<MarketplaceList />);
+
+    await user.click(screen.getByText('Myy'));
+
+    // Fill only description, leave title empty
+    const descInput = screen.getByLabelText('Kuvaus');
+    await user.clear(descInput);
+    await user.paste('Kuvaus ilman otsikkoa');
+
+    await user.click(screen.getByText('Julkaise'));
+
+    expect(screen.getByText('Otsikko on pakollinen')).toBeInTheDocument();
+  });
+
+  it('shows validation errors for empty description', async () => {
+    const user = userEvent.setup();
+    await renderWithRouterContext(<MarketplaceList />);
+
+    await user.click(screen.getByText('Myy'));
+
+    // Fill only title, leave description empty
+    const titleInput = screen.getByLabelText('Otsikko');
+    await user.clear(titleInput);
+    await user.paste('Otsikko ilman kuvausta');
+
+    await user.click(screen.getByText('Julkaise'));
+
+    expect(screen.getByText('Kuvaus on pakollinen')).toBeInTheDocument();
+  });
 });

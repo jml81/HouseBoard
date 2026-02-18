@@ -1,11 +1,14 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createElement } from 'react';
 import type { ReactNode } from 'react';
 import {
   useMarketplaceItems,
   useMarketplaceItem,
+  useCreateMarketplaceItem,
+  useUpdateMarketplaceItemStatus,
+  useDeleteMarketplaceItem,
   marketplaceItemKeys,
 } from './use-marketplace-items';
 
@@ -87,6 +90,107 @@ describe('useMarketplaceItem', () => {
     await waitFor(() => {
       expect(result.current.data).toEqual(mockItem);
     });
+  });
+});
+
+describe('useCreateMarketplaceItem', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('sends POST and returns created item', async () => {
+    const created = {
+      id: 'new-1',
+      title: 'New item',
+      description: 'Desc',
+      price: 10,
+      category: 'muu',
+      condition: 'hyva',
+      status: 'available',
+      seller: { name: 'Testi', apartment: 'A 1' },
+      publishedAt: '2026-02-18',
+    };
+    mockFetch(created);
+
+    const { result } = renderHook(() => useCreateMarketplaceItem(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      const response = await result.current.mutateAsync({
+        title: 'New item',
+        description: 'Desc',
+        price: 10,
+        category: 'muu',
+        condition: 'hyva',
+        sellerName: 'Testi',
+        sellerApartment: 'A 1',
+      });
+      expect(response).toEqual(created);
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/marketplace-items',
+      expect.objectContaining({
+        method: 'POST',
+      }),
+    );
+  });
+});
+
+describe('useUpdateMarketplaceItemStatus', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('sends PATCH and returns updated item', async () => {
+    const updated = { ...mockItems[0], status: 'sold' };
+    mockFetch(updated);
+
+    const { result } = renderHook(() => useUpdateMarketplaceItemStatus(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      const response = await result.current.mutateAsync({ id: 'mp1', status: 'sold' });
+      expect(response).toEqual(updated);
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/marketplace-items/mp1',
+      expect.objectContaining({
+        method: 'PATCH',
+      }),
+    );
+  });
+});
+
+describe('useDeleteMarketplaceItem', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('sends DELETE and returns success', async () => {
+    mockFetch({ success: true });
+
+    const { result } = renderHook(() => useDeleteMarketplaceItem(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      const response = await result.current.mutateAsync('mp1');
+      expect(response).toEqual({ success: true });
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/marketplace-items/mp1',
+      expect.objectContaining({
+        method: 'DELETE',
+      }),
+    );
   });
 });
 

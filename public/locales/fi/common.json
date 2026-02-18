@@ -199,7 +199,21 @@
     "itemCategory": "Kategoria",
     "itemCondition": "Kunto",
     "submit": "Julkaise",
-    "pricePlaceholder": "0"
+    "pricePlaceholder": "0",
+    "createSuccess": "Tuote lisätty kirpputorille!",
+    "createError": "Tuotteen lisääminen epäonnistui",
+    "deleteSuccess": "Tuote poistettu",
+    "deleteError": "Tuotteen poistaminen epäonnistui",
+    "deleteConfirm": "Haluatko varmasti poistaa tämän tuotteen? Toimintoa ei voi perua.",
+    "deleteItem": "Poista tuote",
+    "statusUpdateSuccess": "Tila päivitetty",
+    "statusUpdateError": "Tilan päivittäminen epäonnistui",
+    "markSold": "Merkitse myydyksi",
+    "markReserved": "Merkitse varatuksi",
+    "markAvailable": "Merkitse myyntiin",
+    "validationTitleRequired": "Otsikko on pakollinen",
+    "validationDescriptionRequired": "Kuvaus on pakollinen",
+    "validationPriceInvalid": "Hinnan pitää olla vähintään 0"
   },
   "marketplaceCategories": {
     "huonekalu": "Huonekalu",

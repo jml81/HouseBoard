@@ -199,7 +199,21 @@
     "itemCategory": "Category",
     "itemCondition": "Condition",
     "submit": "Publish",
-    "pricePlaceholder": "0"
+    "pricePlaceholder": "0",
+    "createSuccess": "Item added to marketplace!",
+    "createError": "Failed to add item",
+    "deleteSuccess": "Item deleted",
+    "deleteError": "Failed to delete item",
+    "deleteConfirm": "Are you sure you want to delete this item? This cannot be undone.",
+    "deleteItem": "Delete item",
+    "statusUpdateSuccess": "Status updated",
+    "statusUpdateError": "Failed to update status",
+    "markSold": "Mark as sold",
+    "markReserved": "Mark as reserved",
+    "markAvailable": "Mark as available",
+    "validationTitleRequired": "Title is required",
+    "validationDescriptionRequired": "Description is required",
+    "validationPriceInvalid": "Price must be at least 0"
   },
   "marketplaceCategories": {
     "huonekalu": "Furniture",

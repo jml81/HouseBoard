@@ -16,6 +16,7 @@ import type {
   ContactRole,
   MarketplaceItem,
   MarketplaceCategory,
+  ItemCondition,
   ItemStatus,
   ApartmentPayment,
 } from '@/types';
@@ -38,10 +39,40 @@ async function fetchJson<T>(url: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function mutateJson<T>(url: string, options: { method: string; body?: unknown }): Promise<T> {
+  const init: RequestInit = {
+    method: options.method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (options.body !== undefined) {
+    init.body = JSON.stringify(options.body);
+  }
+  const response = await fetch(url, init);
+  if (!response.ok) {
+    throw new ApiError(response.status, `API error: ${response.status.toString()}`);
+  }
+  return response.json() as Promise<T>;
+}
+
 export interface MarketplaceFilters {
   category?: MarketplaceCategory;
   status?: ItemStatus;
   search?: string;
+}
+
+export interface CreateMarketplaceItemInput {
+  title: string;
+  description: string;
+  price: number;
+  category: MarketplaceCategory;
+  condition: ItemCondition;
+  sellerName: string;
+  sellerApartment: string;
+}
+
+export interface UpdateMarketplaceStatusInput {
+  id: string;
+  status: ItemStatus;
 }
 
 export const apiClient = {
@@ -141,6 +172,23 @@ export const apiClient = {
     },
     get(id: string): Promise<MarketplaceItem> {
       return fetchJson<MarketplaceItem>(`/api/marketplace-items/${encodeURIComponent(id)}`);
+    },
+    create(input: CreateMarketplaceItemInput): Promise<MarketplaceItem> {
+      return mutateJson<MarketplaceItem>('/api/marketplace-items', {
+        method: 'POST',
+        body: input,
+      });
+    },
+    updateStatus(input: UpdateMarketplaceStatusInput): Promise<MarketplaceItem> {
+      return mutateJson<MarketplaceItem>(`/api/marketplace-items/${encodeURIComponent(input.id)}`, {
+        method: 'PATCH',
+        body: { status: input.status },
+      });
+    },
+    delete(id: string): Promise<{ success: boolean }> {
+      return mutateJson<{ success: boolean }>(`/api/marketplace-items/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
     },
   },
 

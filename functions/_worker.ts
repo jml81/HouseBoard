@@ -434,6 +434,7 @@ const VALID_MARKETPLACE_CATEGORIES = [
   'muu',
 ];
 const VALID_MARKETPLACE_STATUSES = ['available', 'sold', 'reserved'];
+const VALID_ITEM_CONDITIONS = ['uusi', 'hyva', 'kohtalainen', 'tyydyttava'];
 
 // --- App ---
 
@@ -782,6 +783,106 @@ app.get('/api/marketplace-items/:id', async (c) => {
   }
 
   return c.json(toMarketplaceItemResponse(row));
+});
+
+app.post('/api/marketplace-items', async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const errors: string[] = [];
+  if (!body.title || typeof body.title !== 'string' || body.title.trim() === '') {
+    errors.push('title is required');
+  }
+  if (!body.description || typeof body.description !== 'string' || body.description.trim() === '') {
+    errors.push('description is required');
+  }
+  if (typeof body.price !== 'number' || body.price < 0) {
+    errors.push('price must be a non-negative number');
+  }
+  if (!body.category || !VALID_MARKETPLACE_CATEGORIES.includes(body.category as string)) {
+    errors.push('invalid category');
+  }
+  if (!body.condition || !VALID_ITEM_CONDITIONS.includes(body.condition as string)) {
+    errors.push('invalid condition');
+  }
+  if (!body.sellerName || typeof body.sellerName !== 'string') {
+    errors.push('sellerName is required');
+  }
+  if (!body.sellerApartment || typeof body.sellerApartment !== 'string') {
+    errors.push('sellerApartment is required');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const id = crypto.randomUUID();
+  const publishedAt = new Date().toISOString().slice(0, 10);
+
+  await c.env.DB.prepare(
+    `INSERT INTO marketplace_items (id, title, description, price, category, condition, status, seller_name, seller_apartment, published_at)
+     VALUES (?, ?, ?, ?, ?, ?, 'available', ?, ?, ?)`,
+  )
+    .bind(
+      id,
+      (body.title as string).trim(),
+      (body.description as string).trim(),
+      body.price as number,
+      body.category as string,
+      body.condition as string,
+      (body.sellerName as string).trim(),
+      (body.sellerApartment as string).trim(),
+      publishedAt,
+    )
+    .run();
+
+  const row = await c.env.DB.prepare('SELECT * FROM marketplace_items WHERE id = ?')
+    .bind(id)
+    .first<MarketplaceItemRow>();
+
+  return c.json(toMarketplaceItemResponse(row!), 201);
+});
+
+app.patch('/api/marketplace-items/:id', async (c) => {
+  const id = c.req.param('id');
+  const body = await c.req.json<Record<string, unknown>>();
+
+  if (!body.status || !VALID_MARKETPLACE_STATUSES.includes(body.status as string)) {
+    return c.json({ error: 'Invalid status' }, 400);
+  }
+
+  const existing = await c.env.DB.prepare('SELECT * FROM marketplace_items WHERE id = ?')
+    .bind(id)
+    .first<MarketplaceItemRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  await c.env.DB.prepare('UPDATE marketplace_items SET status = ? WHERE id = ?')
+    .bind(body.status as string, id)
+    .run();
+
+  const row = await c.env.DB.prepare('SELECT * FROM marketplace_items WHERE id = ?')
+    .bind(id)
+    .first<MarketplaceItemRow>();
+
+  return c.json(toMarketplaceItemResponse(row!));
+});
+
+app.delete('/api/marketplace-items/:id', async (c) => {
+  const id = c.req.param('id');
+
+  const existing = await c.env.DB.prepare('SELECT * FROM marketplace_items WHERE id = ?')
+    .bind(id)
+    .first<MarketplaceItemRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  await c.env.DB.prepare('DELETE FROM marketplace_items WHERE id = ?').bind(id).run();
+
+  return c.json({ success: true });
 });
 
 // --- Apartment payments ---

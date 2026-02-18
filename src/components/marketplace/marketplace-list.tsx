@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
-import type { MarketplaceItem, MarketplaceCategory, ItemCondition } from '@/types';
-import { useMarketplaceItems } from '@/hooks/use-marketplace-items';
+import { toast } from 'sonner';
+import type { MarketplaceCategory, ItemCondition } from '@/types';
+import { useMarketplaceItems, useCreateMarketplaceItem } from '@/hooks/use-marketplace-items';
+import { useAuthStore } from '@/stores/auth-store';
 import { PageHeader } from '@/components/common/page-header';
 import { EmptyState } from '@/components/common/empty-state';
 import { Button } from '@/components/ui/button';
@@ -39,10 +41,17 @@ const categories: MarketplaceCategory[] = [
 
 const conditions: ItemCondition[] = ['uusi', 'hyva', 'kohtalainen', 'tyydyttava'];
 
+interface FormErrors {
+  title?: string;
+  description?: string;
+  price?: string;
+}
+
 export function MarketplaceList(): React.JSX.Element {
   const { t } = useTranslation();
-  const { data: remoteItems = [] } = useMarketplaceItems();
-  const [localAdditions, setLocalAdditions] = useState<MarketplaceItem[]>([]);
+  const { data: items = [] } = useMarketplaceItems();
+  const createItem = useCreateMarketplaceItem();
+  const user = useAuthStore((s) => s.user);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<MarketplaceCategory | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -53,8 +62,7 @@ export function MarketplaceList(): React.JSX.Element {
   const [formPrice, setFormPrice] = useState('');
   const [formCategory, setFormCategory] = useState<MarketplaceCategory>('muu');
   const [formCondition, setFormCondition] = useState<ItemCondition>('hyva');
-
-  const items = useMemo(() => [...localAdditions, ...remoteItems], [localAdditions, remoteItems]);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   const filtered = useMemo(() => {
     let result = items;
@@ -79,26 +87,49 @@ export function MarketplaceList(): React.JSX.Element {
     setFormPrice('');
     setFormCategory('muu');
     setFormCondition('hyva');
+    setFormErrors({});
   }
 
-  function handleSubmit(e: React.FormEvent): void {
+  function validateForm(): FormErrors {
+    const errors: FormErrors = {};
+    if (!formTitle.trim()) {
+      errors.title = t('marketplace.validationTitleRequired');
+    }
+    if (!formDescription.trim()) {
+      errors.description = t('marketplace.validationDescriptionRequired');
+    }
+    const price = Number(formPrice);
+    if (formPrice !== '' && (isNaN(price) || price < 0)) {
+      errors.price = t('marketplace.validationPriceInvalid');
+    }
+    return errors;
+  }
+
+  async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
 
-    const newItem: MarketplaceItem = {
-      id: `mp-${Date.now()}`,
-      title: formTitle,
-      description: formDescription,
-      price: Number(formPrice) || 0,
-      category: formCategory,
-      condition: formCondition,
-      status: 'available',
-      seller: { name: 'Oma ilmoitus', apartment: 'A 1' },
-      publishedAt: new Date().toISOString().slice(0, 10),
-    };
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
 
-    setLocalAdditions((prev) => [newItem, ...prev]);
-    setDialogOpen(false);
-    resetForm();
+    try {
+      await createItem.mutateAsync({
+        title: formTitle.trim(),
+        description: formDescription.trim(),
+        price: Number(formPrice) || 0,
+        category: formCategory,
+        condition: formCondition,
+        sellerName: user.name,
+        sellerApartment: user.apartment,
+      });
+      toast.success(t('marketplace.createSuccess'));
+      setDialogOpen(false);
+      resetForm();
+    } catch {
+      toast.error(t('marketplace.createError'));
+    }
   }
 
   return (
@@ -115,7 +146,11 @@ export function MarketplaceList(): React.JSX.Element {
               </Button>
             </DialogTrigger>
             <DialogContent>
-              <form onSubmit={handleSubmit}>
+              <form
+                onSubmit={(e) => {
+                  void handleSubmit(e);
+                }}
+              >
                 <DialogHeader>
                   <DialogTitle>{t('marketplace.createTitle')}</DialogTitle>
                   <DialogDescription>{t('marketplace.createDescription')}</DialogDescription>
@@ -127,8 +162,10 @@ export function MarketplaceList(): React.JSX.Element {
                       id="item-title"
                       value={formTitle}
                       onChange={(e) => setFormTitle(e.target.value)}
-                      required
                     />
+                    {formErrors.title && (
+                      <p className="text-sm text-destructive">{formErrors.title}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="item-description">{t('marketplace.itemDescription')}</Label>
@@ -136,8 +173,10 @@ export function MarketplaceList(): React.JSX.Element {
                       id="item-description"
                       value={formDescription}
                       onChange={(e) => setFormDescription(e.target.value)}
-                      required
                     />
+                    {formErrors.description && (
+                      <p className="text-sm text-destructive">{formErrors.description}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="item-price">{t('marketplace.itemPrice')}</Label>
@@ -149,6 +188,9 @@ export function MarketplaceList(): React.JSX.Element {
                       onChange={(e) => setFormPrice(e.target.value)}
                       placeholder={t('marketplace.pricePlaceholder')}
                     />
+                    {formErrors.price && (
+                      <p className="text-sm text-destructive">{formErrors.price}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label>{t('marketplace.itemCategory')}</Label>
@@ -188,7 +230,11 @@ export function MarketplaceList(): React.JSX.Element {
                   </div>
                 </div>
                 <DialogFooter className="mt-6">
-                  <Button type="submit" className="bg-hb-accent hover:bg-hb-accent/90">
+                  <Button
+                    type="submit"
+                    className="bg-hb-accent hover:bg-hb-accent/90"
+                    disabled={createItem.isPending}
+                  >
                     {t('marketplace.submit')}
                   </Button>
                 </DialogFooter>
