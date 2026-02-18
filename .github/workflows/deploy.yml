@@ -62,22 +62,22 @@ jobs:
           sleep 10
 
           echo "Testing /api/health..."
-          HEALTH=$(curl -sf https://houseboard.pages.dev/api/health)
+          HEALTH=$(curl -sf -u demo:Talo2026! https://houseboard.pages.dev/api/health)
           echo "$HEALTH" | grep -q '"status":"ok"' || { echo "FAIL: /api/health"; exit 1; }
           echo "OK: $HEALTH"
 
           echo "Testing /api/announcements..."
-          ANNOUNCEMENTS=$(curl -sf https://houseboard.pages.dev/api/announcements)
+          ANNOUNCEMENTS=$(curl -sf -u demo:Talo2026! https://houseboard.pages.dev/api/announcements)
           echo "$ANNOUNCEMENTS" | grep -q '"id"' || { echo "FAIL: /api/announcements"; exit 1; }
           echo "OK: response contains announcements"
 
           echo "Testing /api/building..."
-          BUILDING=$(curl -sf https://houseboard.pages.dev/api/building)
+          BUILDING=$(curl -sf -u demo:Talo2026! https://houseboard.pages.dev/api/building)
           echo "$BUILDING" | grep -q '"name"' || { echo "FAIL: /api/building"; exit 1; }
           echo "OK: $BUILDING"
 
           echo "Testing / (HTML)..."
-          HTML=$(curl -sf https://houseboard.pages.dev/)
+          HTML=$(curl -sf -u demo:Talo2026! https://houseboard.pages.dev/)
           echo "$HTML" | grep -q '<div id="root">' || { echo "FAIL: / HTML"; exit 1; }
           echo "OK: HTML contains root div"
 
