@@ -15,6 +15,7 @@ const mockItem: MarketplaceItem = {
   status: 'available',
   seller: { name: 'Testi Myyjä', apartment: 'B 5' },
   publishedAt: '2026-02-12',
+  createdBy: 'other-user',
 };
 
 const freeItem: MarketplaceItem = {
@@ -23,11 +24,12 @@ const freeItem: MarketplaceItem = {
   price: 0,
 };
 
-// Item owned by the default auth user (Aino Virtanen, A 12)
+// Item owned by the default auth user (u1)
 const ownedItem: MarketplaceItem = {
   ...mockItem,
   id: 'test-3',
   seller: { name: 'Aino Virtanen', apartment: 'A 12' },
+  createdBy: 'u1',
 };
 
 const soldItem: MarketplaceItem = {

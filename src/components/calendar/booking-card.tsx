@@ -31,7 +31,7 @@ export function BookingCard({ booking }: BookingCardProps): React.JSX.Element {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const isOwner = user?.name === booking.bookerName && user?.apartment === booking.apartment;
+  const isOwner = booking.createdBy !== null && user?.id === booking.createdBy;
   const canManage = isOwner || isManager;
 
   async function handleDelete(): Promise<void> {

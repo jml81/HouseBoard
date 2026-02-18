@@ -14,6 +14,7 @@ const mockItem: MarketplaceItem = {
   status: 'available',
   seller: { name: 'Testi Myyjä', apartment: 'A 1' },
   publishedAt: '2026-02-10',
+  createdBy: null,
 };
 
 const freeItem: MarketplaceItem = {

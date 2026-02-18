@@ -23,6 +23,7 @@ const mockBookings = [
     location: 'Taloyhtiön sauna',
     bookerName: 'Virtanen Matti',
     apartment: 'A 12',
+    createdBy: null,
   },
 ];
 
@@ -111,6 +112,7 @@ describe('useCreateBooking', () => {
       location: 'Taloyhtiön sauna',
       bookerName: 'Testi',
       apartment: 'A 1',
+      createdBy: 'u1',
     };
     mockFetch(created);
 

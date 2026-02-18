@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS bookings (
   category TEXT NOT NULL CHECK (category IN ('sauna','pesutupa','kerhohuone','talkoot')),
   location TEXT NOT NULL,
   booker_name TEXT NOT NULL,
-  apartment TEXT NOT NULL
+  apartment TEXT NOT NULL,
+  created_by TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(date);
@@ -141,7 +142,8 @@ CREATE TABLE IF NOT EXISTS marketplace_items (
   status TEXT NOT NULL CHECK (status IN ('available','sold','reserved')),
   seller_name TEXT NOT NULL,
   seller_apartment TEXT NOT NULL,
-  published_at TEXT NOT NULL
+  published_at TEXT NOT NULL,
+  created_by TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_marketplace_items_category_status ON marketplace_items(category, status);

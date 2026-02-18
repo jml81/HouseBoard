@@ -40,6 +40,15 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 execute houseboard-db --remote --file=db/schema.sql
 
+      - name: D1 add created_by columns (idempotent)
+        if: github.event_name == 'push'
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 execute houseboard-db --remote --command "ALTER TABLE bookings ADD COLUMN created_by TEXT; ALTER TABLE marketplace_items ADD COLUMN created_by TEXT;"
+
       - name: D1 seed data
         if: github.event_name == 'push'
         uses: cloudflare/wrangler-action@v3
@@ -61,23 +70,36 @@ jobs:
           echo "Waiting 10s for edge propagation..."
           sleep 10
 
-          echo "Testing /api/health..."
-          HEALTH=$(curl -sf -u demo:Talo2026! https://houseboard.pages.dev/api/health)
+          echo "Testing /api/health (no auth required)..."
+          HEALTH=$(curl -sf https://houseboard.pages.dev/api/health)
           echo "$HEALTH" | grep -q '"status":"ok"' || { echo "FAIL: /api/health"; exit 1; }
           echo "OK: $HEALTH"
 
-          echo "Testing /api/announcements..."
-          ANNOUNCEMENTS=$(curl -sf -u demo:Talo2026! https://houseboard.pages.dev/api/announcements)
+          echo "Logging in to get JWT token..."
+          LOGIN=$(curl -sf -X POST https://houseboard.pages.dev/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"asukas@talo.fi","password":"Asukas2026!"}')
+          TOKEN=$(echo "$LOGIN" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+          [ -n "$TOKEN" ] || { echo "FAIL: login did not return token"; echo "$LOGIN"; exit 1; }
+          echo "OK: got JWT token"
+
+          echo "Testing /api/announcements (with JWT)..."
+          ANNOUNCEMENTS=$(curl -sf -H "Authorization: Bearer $TOKEN" https://houseboard.pages.dev/api/announcements)
           echo "$ANNOUNCEMENTS" | grep -q '"id"' || { echo "FAIL: /api/announcements"; exit 1; }
           echo "OK: response contains announcements"
 
-          echo "Testing /api/building..."
-          BUILDING=$(curl -sf -u demo:Talo2026! https://houseboard.pages.dev/api/building)
+          echo "Testing /api/building (with JWT)..."
+          BUILDING=$(curl -sf -H "Authorization: Bearer $TOKEN" https://houseboard.pages.dev/api/building)
           echo "$BUILDING" | grep -q '"name"' || { echo "FAIL: /api/building"; exit 1; }
           echo "OK: $BUILDING"
 
-          echo "Testing / (HTML)..."
-          HTML=$(curl -sf -u demo:Talo2026! https://houseboard.pages.dev/)
+          echo "Testing 401 without token..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://houseboard.pages.dev/api/announcements)
+          [ "$STATUS" = "401" ] || { echo "FAIL: expected 401, got $STATUS"; exit 1; }
+          echo "OK: unauthenticated request returns 401"
+
+          echo "Testing / (HTML, no auth for static assets)..."
+          HTML=$(curl -sf https://houseboard.pages.dev/)
           echo "$HTML" | grep -q '<div id="root">' || { echo "FAIL: / HTML"; exit 1; }
           echo "OK: HTML contains root div"
 

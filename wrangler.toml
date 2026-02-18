@@ -4,8 +4,9 @@ name = "houseboard"
 compatibility_date = "2026-01-01"
 pages_build_output_dir = "dist"
 
-[vars]
-JWT_SECRET = "dev-secret-do-not-use-in-production"
+# JWT_SECRET is set via:
+# - .dev.vars for local development (wrangler pages dev)
+# - Cloudflare Pages secrets for production
 
 # [[kv_namespaces]]
 # binding = "KV"

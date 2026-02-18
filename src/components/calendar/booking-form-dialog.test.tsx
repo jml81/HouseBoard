@@ -15,6 +15,7 @@ const mockBooking: Booking = {
   location: 'Taloyhtiön sauna',
   bookerName: 'Aino Virtanen',
   apartment: 'A 12',
+  createdBy: 'u1',
 };
 
 function mockFetch(data: unknown = { success: true }, status = 200): void {

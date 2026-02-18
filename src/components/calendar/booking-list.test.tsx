@@ -15,6 +15,7 @@ const mockBookings: Booking[] = [
     location: 'Taloyhtiön sauna',
     bookerName: 'Virtanen Matti',
     apartment: 'A 12',
+    createdBy: null,
   },
   {
     id: 'test-2',
@@ -26,6 +27,7 @@ const mockBookings: Booking[] = [
     location: 'Pesutupa',
     bookerName: 'Korhonen Anna',
     apartment: 'B 3',
+    createdBy: null,
   },
 ];
 

@@ -10,6 +10,7 @@ export interface Booking {
   location: string;
   bookerName: string;
   apartment: string;
+  createdBy: string | null;
 }
 
 export const BOOKING_CATEGORY_COLORS: Record<BookingCategory, string> = {

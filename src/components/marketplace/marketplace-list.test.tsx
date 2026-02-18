@@ -15,6 +15,7 @@ const mockItems = [
     status: 'available',
     seller: { name: 'Minna Korhonen', apartment: 'B 12' },
     publishedAt: '2026-02-14',
+    createdBy: null,
   },
   {
     id: 'mp2',
@@ -26,6 +27,7 @@ const mockItems = [
     status: 'available',
     seller: { name: 'Jari Virtanen', apartment: 'A 3' },
     publishedAt: '2026-02-12',
+    createdBy: null,
   },
   {
     id: 'mp3',
@@ -37,6 +39,7 @@ const mockItems = [
     status: 'available',
     seller: { name: 'Liisa Mäkelä', apartment: 'C 22' },
     publishedAt: '2026-02-10',
+    createdBy: null,
   },
   {
     id: 'mp4',
@@ -48,6 +51,7 @@ const mockItems = [
     status: 'available',
     seller: { name: 'Timo Nieminen', apartment: 'A 7' },
     publishedAt: '2026-02-08',
+    createdBy: null,
   },
   {
     id: 'mp5',
@@ -59,6 +63,7 @@ const mockItems = [
     status: 'available',
     seller: { name: 'Anna Lahtinen', apartment: 'B 16' },
     publishedAt: '2026-02-06',
+    createdBy: null,
   },
   {
     id: 'mp6',
@@ -70,6 +75,7 @@ const mockItems = [
     status: 'reserved',
     seller: { name: 'Pekka Salminen', apartment: 'C 19' },
     publishedAt: '2026-02-04',
+    createdBy: null,
   },
   {
     id: 'mp7',
@@ -81,6 +87,7 @@ const mockItems = [
     status: 'sold',
     seller: { name: 'Heikki Järvinen', apartment: 'A 5' },
     publishedAt: '2026-01-28',
+    createdBy: null,
   },
   {
     id: 'mp8',
@@ -92,6 +99,7 @@ const mockItems = [
     status: 'available',
     seller: { name: 'Sari Rantala', apartment: 'B 9' },
     publishedAt: '2026-02-01',
+    createdBy: null,
   },
   {
     id: 'mp9',
@@ -103,6 +111,7 @@ const mockItems = [
     status: 'available',
     seller: { name: 'Markku Laine', apartment: 'C 24' },
     publishedAt: '2026-01-25',
+    createdBy: null,
   },
   {
     id: 'mp10',
@@ -114,6 +123,7 @@ const mockItems = [
     status: 'available',
     seller: { name: 'Tiina Koskinen', apartment: 'A 2' },
     publishedAt: '2026-01-20',
+    createdBy: null,
   },
 ];
 
@@ -127,6 +137,7 @@ const createdItem = {
   status: 'available',
   seller: { name: 'Aino Virtanen', apartment: 'A 12' },
   publishedAt: '2026-02-18',
+  createdBy: 'u1',
 };
 
 function setupFetchMock(): void {

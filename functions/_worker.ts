@@ -47,6 +47,7 @@ interface BookingRow {
   location: string;
   booker_name: string;
   apartment: string;
+  created_by: string | null;
 }
 
 interface EventRow {
@@ -135,6 +136,7 @@ interface MarketplaceItemRow {
   seller_name: string;
   seller_apartment: string;
   published_at: string;
+  created_by: string | null;
 }
 
 interface ApartmentPaymentRow {
@@ -209,6 +211,7 @@ interface BookingResponse {
   location: string;
   bookerName: string;
   apartment: string;
+  createdBy: string | null;
 }
 
 interface EventResponse {
@@ -296,6 +299,7 @@ interface MarketplaceItemResponse {
   status: string;
   seller: { name: string; apartment: string };
   publishedAt: string;
+  createdBy: string | null;
 }
 
 interface ApartmentPaymentResponse {
@@ -345,6 +349,7 @@ function toBookingResponse(row: BookingRow): BookingResponse {
     location: row.location,
     bookerName: row.booker_name,
     apartment: row.apartment,
+    createdBy: row.created_by,
   };
 }
 
@@ -434,6 +439,7 @@ function toMarketplaceItemResponse(row: MarketplaceItemRow): MarketplaceItemResp
     status: row.status,
     seller: { name: row.seller_name, apartment: row.seller_apartment },
     publishedAt: row.published_at,
+    createdBy: row.created_by,
   };
 }
 
@@ -856,9 +862,11 @@ app.post('/api/bookings', async (c) => {
       ? body.location.trim()
       : defaults.location;
 
+  const user = c.get('user');
+
   await c.env.DB.prepare(
-    `INSERT INTO bookings (id, title, date, start_time, end_time, category, location, booker_name, apartment)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO bookings (id, title, date, start_time, end_time, category, location, booker_name, apartment, created_by)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind(
       id,
@@ -870,6 +878,7 @@ app.post('/api/bookings', async (c) => {
       location,
       (body.bookerName as string).trim(),
       (body.apartment as string).trim(),
+      user.sub,
     )
     .run();
 
@@ -890,6 +899,12 @@ app.patch('/api/bookings/:id', async (c) => {
 
   if (!existing) {
     return c.json({ error: 'Not found' }, 404);
+  }
+
+  // Ownership check: only owner or manager can update
+  const user = c.get('user');
+  if (existing.created_by !== null && existing.created_by !== user.sub && user.role !== 'manager') {
+    return c.json({ error: 'Forbidden: not the owner' }, 403);
   }
 
   const errors: string[] = [];
@@ -982,6 +997,12 @@ app.delete('/api/bookings/:id', async (c) => {
 
   if (!existing) {
     return c.json({ error: 'Not found' }, 404);
+  }
+
+  // Ownership check: only owner or manager can delete
+  const user = c.get('user');
+  if (existing.created_by !== null && existing.created_by !== user.sub && user.role !== 'manager') {
+    return c.json({ error: 'Forbidden: not the owner' }, 403);
   }
 
   await c.env.DB.prepare('DELETE FROM bookings WHERE id = ?').bind(id).run();
@@ -1272,10 +1293,11 @@ app.post('/api/marketplace-items', async (c) => {
 
   const id = crypto.randomUUID();
   const publishedAt = new Date().toISOString().slice(0, 10);
+  const user = c.get('user');
 
   await c.env.DB.prepare(
-    `INSERT INTO marketplace_items (id, title, description, price, category, condition, status, seller_name, seller_apartment, published_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'available', ?, ?, ?)`,
+    `INSERT INTO marketplace_items (id, title, description, price, category, condition, status, seller_name, seller_apartment, published_at, created_by)
+     VALUES (?, ?, ?, ?, ?, ?, 'available', ?, ?, ?, ?)`,
   )
     .bind(
       id,
@@ -1287,6 +1309,7 @@ app.post('/api/marketplace-items', async (c) => {
       (body.sellerName as string).trim(),
       (body.sellerApartment as string).trim(),
       publishedAt,
+      user.sub,
     )
     .run();
 
@@ -1313,6 +1336,12 @@ app.patch('/api/marketplace-items/:id', async (c) => {
     return c.json({ error: 'Not found' }, 404);
   }
 
+  // Ownership check: only owner or manager can update
+  const user = c.get('user');
+  if (existing.created_by !== null && existing.created_by !== user.sub && user.role !== 'manager') {
+    return c.json({ error: 'Forbidden: not the owner' }, 403);
+  }
+
   await c.env.DB.prepare('UPDATE marketplace_items SET status = ? WHERE id = ?')
     .bind(body.status as string, id)
     .run();
@@ -1333,6 +1362,12 @@ app.delete('/api/marketplace-items/:id', async (c) => {
 
   if (!existing) {
     return c.json({ error: 'Not found' }, 404);
+  }
+
+  // Ownership check: only owner or manager can delete
+  const user = c.get('user');
+  if (existing.created_by !== null && existing.created_by !== user.sub && user.role !== 'manager') {
+    return c.json({ error: 'Forbidden: not the owner' }, 403);
   }
 
   await c.env.DB.prepare('DELETE FROM marketplace_items WHERE id = ?').bind(id).run();

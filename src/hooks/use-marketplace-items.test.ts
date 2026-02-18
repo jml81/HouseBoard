@@ -23,6 +23,7 @@ const mockItems = [
     status: 'available',
     seller: { name: 'Minna Korhonen', apartment: 'B 12' },
     publishedAt: '2026-02-14',
+    createdBy: null,
   },
 ];
 
@@ -113,6 +114,7 @@ describe('useCreateMarketplaceItem', () => {
       status: 'available',
       seller: { name: 'Testi', apartment: 'A 1' },
       publishedAt: '2026-02-18',
+      createdBy: 'u1',
     };
     mockFetch(created);
 
