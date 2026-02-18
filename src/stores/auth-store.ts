@@ -10,6 +10,7 @@ interface AuthState {
   login: (response: AuthResponse) => void;
   logout: () => void;
   toggleManagerMode: () => void;
+  updateUser: (user: User) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -38,6 +39,11 @@ export const useAuthStore = create<AuthState>()(
         if (state.user?.role !== 'manager') return;
         set({ isManager: !state.isManager });
       },
+      updateUser: (user: User) =>
+        set({
+          user,
+          isManager: get().isManager && user.role === 'manager',
+        }),
     }),
     {
       name: 'houseboard-auth',

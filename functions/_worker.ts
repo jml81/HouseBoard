@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { Context, Next } from 'hono';
-import { verifyPassword, signJwt, verifyJwt } from './auth-utils.js';
+import { hashPassword, verifyPassword, signJwt, verifyJwt } from './auth-utils.js';
 import type { JwtPayload } from './auth-utils.js';
 
 interface Env {
@@ -157,6 +157,7 @@ interface UserRow {
   name: string;
   apartment: string;
   role: string;
+  status: string;
   created_at: string;
 }
 
@@ -166,6 +167,8 @@ interface UserResponse {
   name: string;
   apartment: string;
   role: string;
+  status: string;
+  createdAt: string;
 }
 
 function toUserResponse(row: UserRow): UserResponse {
@@ -175,6 +178,8 @@ function toUserResponse(row: UserRow): UserResponse {
     name: row.name,
     apartment: row.apartment,
     role: row.role,
+    status: row.status,
+    createdAt: row.created_at,
   };
 }
 
@@ -477,6 +482,8 @@ const VALID_MARKETPLACE_CATEGORIES = [
 const VALID_MARKETPLACE_STATUSES = ['available', 'sold', 'reserved'];
 const VALID_ITEM_CONDITIONS = ['uusi', 'hyva', 'kohtalainen', 'tyydyttava'];
 const VALID_PAYMENT_STATUSES = ['paid', 'pending', 'overdue'];
+const VALID_USER_ROLES = ['resident', 'manager'];
+const VALID_USER_STATUSES = ['active', 'locked'];
 
 // --- App ---
 
@@ -509,6 +516,10 @@ app.post('/api/auth/login', async (c) => {
     return c.json({ error: 'Invalid email or password' }, 401);
   }
 
+  if (user.status !== 'active') {
+    return c.json({ error: 'Account is locked' }, 403);
+  }
+
   const token = await signJwt(
     {
       sub: user.id,
@@ -535,13 +546,16 @@ app.get('/api/auth/me', async (c) => {
     return c.json({ error: 'Invalid or expired token' }, 401);
   }
 
-  return c.json({
-    id: payload.sub,
-    email: payload.email,
-    name: payload.name,
-    apartment: payload.apartment,
-    role: payload.role,
-  });
+  // Fetch fresh data from DB (name/status may have changed)
+  const user = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?')
+    .bind(payload.sub)
+    .first<UserRow>();
+
+  if (!user || user.status !== 'active') {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  return c.json(toUserResponse(user));
 });
 
 // --- JWT authentication middleware (all routes below) ---
@@ -562,6 +576,15 @@ app.use('/api/*', async (c: Context<{ Bindings: Env; Variables: Variables }>, ne
   const payload = await verifyJwt(token, c.env.JWT_SECRET);
   if (!payload) {
     return c.json({ error: 'Invalid or expired token' }, 401);
+  }
+
+  // Check user still exists and is active
+  const userStatus = await c.env.DB.prepare('SELECT status FROM users WHERE id = ?')
+    .bind(payload.sub)
+    .first<{ status: string }>();
+
+  if (!userStatus || userStatus.status !== 'active') {
+    return c.json({ error: 'Unauthorized' }, 401);
   }
 
   c.set('user', payload);
@@ -1571,6 +1594,253 @@ app.delete('/api/apartment-payments/:apartmentId', requireManager(), async (c) =
   }
 
   await c.env.DB.prepare('DELETE FROM apartment_payments WHERE apartment_id = ?').bind(apartmentId).run();
+
+  return c.json({ success: true });
+});
+
+// --- User management (manager only) ---
+
+app.get('/api/users', requireManager(), async (c) => {
+  const { results } = await c.env.DB.prepare(
+    'SELECT * FROM users ORDER BY created_at',
+  ).all<UserRow>();
+
+  return c.json(results.map(toUserResponse));
+});
+
+app.post('/api/users', requireManager(), async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const errors: string[] = [];
+  if (!body.email || typeof body.email !== 'string' || body.email.trim() === '') {
+    errors.push('email is required');
+  }
+  if (!body.password || typeof body.password !== 'string' || (body.password as string).length < 8) {
+    errors.push('password must be at least 8 characters');
+  }
+  if (!body.name || typeof body.name !== 'string' || body.name.trim() === '') {
+    errors.push('name is required');
+  }
+  if (!body.apartment || typeof body.apartment !== 'string' || body.apartment.trim() === '') {
+    errors.push('apartment is required');
+  }
+  if (!body.role || !VALID_USER_ROLES.includes(body.role as string)) {
+    errors.push('invalid role');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  // Check email uniqueness
+  const existing = await c.env.DB.prepare('SELECT id FROM users WHERE email = ?')
+    .bind((body.email as string).trim().toLowerCase())
+    .first();
+
+  if (existing) {
+    return c.json({ error: 'Email already in use' }, 409);
+  }
+
+  const id = crypto.randomUUID();
+  const passwordHash = await hashPassword(body.password as string);
+
+  await c.env.DB.prepare(
+    `INSERT INTO users (id, email, password_hash, name, apartment, role, status, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, 'active', datetime('now'))`,
+  )
+    .bind(
+      id,
+      (body.email as string).trim().toLowerCase(),
+      passwordHash,
+      (body.name as string).trim(),
+      (body.apartment as string).trim(),
+      body.role as string,
+    )
+    .run();
+
+  const row = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?')
+    .bind(id)
+    .first<UserRow>();
+
+  return c.json(toUserResponse(row!), 201);
+});
+
+app.patch('/api/users/:id', requireManager(), async (c) => {
+  const id = c.req.param('id');
+  const body = await c.req.json<Record<string, unknown>>();
+  const currentUser = c.get('user');
+
+  const existing = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?')
+    .bind(id)
+    .first<UserRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  // Prevent self-demotion, self-locking
+  if (id === currentUser.sub) {
+    if (body.role !== undefined && body.role !== existing.role) {
+      return c.json({ error: 'Cannot change own role' }, 403);
+    }
+    if (body.status !== undefined && body.status !== existing.status) {
+      return c.json({ error: 'Cannot change own status' }, 403);
+    }
+  }
+
+  const errors: string[] = [];
+  if (body.name !== undefined && (typeof body.name !== 'string' || body.name.trim() === '')) {
+    errors.push('name cannot be empty');
+  }
+  if (body.apartment !== undefined && (typeof body.apartment !== 'string' || body.apartment.trim() === '')) {
+    errors.push('apartment cannot be empty');
+  }
+  if (body.role !== undefined && !VALID_USER_ROLES.includes(body.role as string)) {
+    errors.push('invalid role');
+  }
+  if (body.status !== undefined && !VALID_USER_STATUSES.includes(body.status as string)) {
+    errors.push('invalid status');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const updates: string[] = [];
+  const params: string[] = [];
+
+  if (body.name !== undefined) {
+    updates.push('name = ?');
+    params.push((body.name as string).trim());
+  }
+  if (body.apartment !== undefined) {
+    updates.push('apartment = ?');
+    params.push((body.apartment as string).trim());
+  }
+  if (body.role !== undefined) {
+    updates.push('role = ?');
+    params.push(body.role as string);
+  }
+  if (body.status !== undefined) {
+    updates.push('status = ?');
+    params.push(body.status as string);
+  }
+
+  if (updates.length > 0) {
+    params.push(id);
+    await c.env.DB.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`)
+      .bind(...params)
+      .run();
+  }
+
+  const row = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?')
+    .bind(id)
+    .first<UserRow>();
+
+  return c.json(toUserResponse(row!));
+});
+
+app.delete('/api/users/:id', requireManager(), async (c) => {
+  const id = c.req.param('id');
+  const currentUser = c.get('user');
+
+  if (id === currentUser.sub) {
+    return c.json({ error: 'Cannot delete own account' }, 403);
+  }
+
+  const existing = await c.env.DB.prepare('SELECT id FROM users WHERE id = ?')
+    .bind(id)
+    .first();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  // Nullify created_by references
+  await c.env.DB.prepare('UPDATE bookings SET created_by = NULL WHERE created_by = ?')
+    .bind(id)
+    .run();
+  await c.env.DB.prepare('UPDATE marketplace_items SET created_by = NULL WHERE created_by = ?')
+    .bind(id)
+    .run();
+
+  await c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(id).run();
+
+  return c.json({ success: true });
+});
+
+// --- Profile (authenticated user) ---
+
+app.patch('/api/profile', async (c) => {
+  const currentUser = c.get('user');
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const errors: string[] = [];
+  if (body.name !== undefined && (typeof body.name !== 'string' || body.name.trim() === '')) {
+    errors.push('name cannot be empty');
+  }
+  if (body.apartment !== undefined && (typeof body.apartment !== 'string' || body.apartment.trim() === '')) {
+    errors.push('apartment cannot be empty');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const updates: string[] = [];
+  const params: string[] = [];
+
+  if (body.name !== undefined) {
+    updates.push('name = ?');
+    params.push((body.name as string).trim());
+  }
+  if (body.apartment !== undefined) {
+    updates.push('apartment = ?');
+    params.push((body.apartment as string).trim());
+  }
+
+  if (updates.length > 0) {
+    params.push(currentUser.sub);
+    await c.env.DB.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`)
+      .bind(...params)
+      .run();
+  }
+
+  const row = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?')
+    .bind(currentUser.sub)
+    .first<UserRow>();
+
+  return c.json(toUserResponse(row!));
+});
+
+app.post('/api/profile/change-password', async (c) => {
+  const currentUser = c.get('user');
+  const body = await c.req.json<Record<string, unknown>>();
+
+  if (!body.currentPassword || typeof body.currentPassword !== 'string') {
+    return c.json({ error: 'Current password is required' }, 400);
+  }
+  if (!body.newPassword || typeof body.newPassword !== 'string' || (body.newPassword as string).length < 8) {
+    return c.json({ error: 'New password must be at least 8 characters' }, 400);
+  }
+
+  const user = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?')
+    .bind(currentUser.sub)
+    .first<UserRow>();
+
+  if (!user) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const valid = await verifyPassword(body.currentPassword as string, user.password_hash);
+  if (!valid) {
+    return c.json({ error: 'Current password is incorrect' }, 401);
+  }
+
+  const newHash = await hashPassword(body.newPassword as string);
+  await c.env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+    .bind(newHash, currentUser.sub)
+    .run();
 
   return c.json({ success: true });
 });

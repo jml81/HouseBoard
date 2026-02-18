@@ -9,9 +9,9 @@ DELETE FROM users;
 DELETE FROM announcements;
 
 -- Users (PBKDF2-SHA256, 100k iterations, pre-computed hashes)
-INSERT INTO users (id, email, password_hash, name, apartment, role, created_at) VALUES
-('u1', 'asukas@talo.fi', 'a1b2c3d4e5f6a7b8a1b2c3d4e5f6a7b8:08110f9f20f10a8f6c4ec128cd18d002ce7b84afc70370e8dee255f5b48c554a', 'Aino Virtanen', 'A 12', 'resident', '2026-01-01T00:00:00Z'),
-('u2', 'isannoitsija@talo.fi', 'b2c3d4e5f6a7b8a1b2c3d4e5f6a7b8a1:a0acde421ed918e028b4bbf57ea30255527b3e75e1e0d3a074e59176bc42008f', 'Mikko Lahtinen', 'A 4', 'manager', '2026-01-01T00:00:00Z');
+INSERT INTO users (id, email, password_hash, name, apartment, role, status, created_at) VALUES
+('u1', 'asukas@talo.fi', 'a1b2c3d4e5f6a7b8a1b2c3d4e5f6a7b8:08110f9f20f10a8f6c4ec128cd18d002ce7b84afc70370e8dee255f5b48c554a', 'Aino Virtanen', 'A 12', 'resident', 'active', '2026-01-01T00:00:00Z'),
+('u2', 'isannoitsija@talo.fi', 'b2c3d4e5f6a7b8a1b2c3d4e5f6a7b8a1:a0acde421ed918e028b4bbf57ea30255527b3e75e1e0d3a074e59176bc42008f', 'Mikko Lahtinen', 'A 4', 'manager', 'active', '2026-01-01T00:00:00Z');
 
 INSERT INTO announcements (id, title, summary, content, category, author, published_at, is_new) VALUES
 ('a1', 'Kevätsiivous 15.3.2026', 'Taloyhtiön kevätsiivous järjestetään lauantaina 15.3. Kaikki asukkaat ovat tervetulleita!', 'Hyvät asukkaat,

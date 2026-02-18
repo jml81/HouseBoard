@@ -11,14 +11,16 @@
     "events": "Tapahtumat",
     "materials": "Materiaalit",
     "marketplace": "Kirpputori",
-    "more": "Lisää"
+    "more": "Lisää",
+    "profile": "Profiili"
   },
   "nav_plus": {
     "title": "HouseBoard+",
     "meetings": "Kokoukset",
     "board": "Hallitus",
     "apartments": "Huoneistot",
-    "contacts": "Yhteystiedot"
+    "contacts": "Yhteystiedot",
+    "users": "Käyttäjät"
   },
   "common": {
     "loading": "Ladataan...",
@@ -50,6 +52,7 @@
     "email": "Sähköposti",
     "password": "Salasana",
     "loginError": "Virheellinen sähköposti tai salasana",
+    "accountLocked": "Tili on lukittu. Ota yhteyttä isännöitsijään.",
     "sessionExpired": "Istuntosi on vanhentunut. Kirjaudu uudelleen.",
     "managerToggle": "Isännöitsijätila",
     "managerModeOn": "Isännöitsijätila päällä",
@@ -347,5 +350,71 @@
     "talous": "Talous",
     "kunnossapito": "Kunnossapito",
     "muut": "Muut"
+  },
+  "userRoles": {
+    "resident": "Asukas",
+    "manager": "Isännöitsijä"
+  },
+  "userStatuses": {
+    "active": "Aktiivinen",
+    "locked": "Lukittu"
+  },
+  "profile": {
+    "title": "Profiili",
+    "description": "Omat tiedot ja asetukset",
+    "userInfo": "Käyttäjätiedot",
+    "name": "Nimi",
+    "email": "Sähköposti",
+    "apartment": "Huoneisto",
+    "role": "Rooli",
+    "editInfo": "Muokkaa tietoja",
+    "saveInfo": "Tallenna",
+    "updateSuccess": "Tiedot päivitetty!",
+    "updateError": "Tietojen päivittäminen epäonnistui",
+    "changePassword": "Vaihda salasana",
+    "currentPassword": "Nykyinen salasana",
+    "newPassword": "Uusi salasana",
+    "confirmPassword": "Vahvista salasana",
+    "changePasswordSubmit": "Vaihda salasana",
+    "passwordSuccess": "Salasana vaihdettu!",
+    "passwordError": "Salasanan vaihtaminen epäonnistui",
+    "passwordWrong": "Nykyinen salasana on väärin",
+    "passwordMinLength": "Salasanan pitää olla vähintään 8 merkkiä",
+    "passwordMismatch": "Salasanat eivät täsmää"
+  },
+  "users": {
+    "title": "Käyttäjät",
+    "description": "Hallinnoi taloyhtiön käyttäjätilejä",
+    "createUser": "Uusi käyttäjä",
+    "createTitle": "Uusi käyttäjä",
+    "createDescription": "Luo uusi käyttäjätili",
+    "editTitle": "Muokkaa käyttäjää",
+    "editDescription": "Muokkaa käyttäjän tietoja",
+    "formName": "Nimi",
+    "formEmail": "Sähköposti",
+    "formApartment": "Huoneisto",
+    "formRole": "Rooli",
+    "formStatus": "Tila",
+    "formPassword": "Salasana",
+    "formConfirmPassword": "Vahvista salasana",
+    "submit": "Luo",
+    "update": "Tallenna",
+    "createSuccess": "Käyttäjä luotu!",
+    "updateSuccess": "Käyttäjä päivitetty!",
+    "deleteSuccess": "Käyttäjä poistettu",
+    "createError": "Käyttäjän luominen epäonnistui",
+    "updateError": "Käyttäjän päivittäminen epäonnistui",
+    "deleteError": "Käyttäjän poistaminen epäonnistui",
+    "duplicateEmail": "Sähköpostiosoite on jo käytössä",
+    "deleteConfirm": "Haluatko varmasti poistaa tämän käyttäjän? Käyttäjän luomat varaukset ja kirpputori-ilmoitukset säilyvät.",
+    "deleteUser": "Poista käyttäjä",
+    "cannotDeleteSelf": "Et voi poistaa omaa tiliäsi",
+    "validationNameRequired": "Nimi on pakollinen",
+    "validationEmailRequired": "Sähköposti on pakollinen",
+    "validationApartmentRequired": "Huoneisto on pakollinen",
+    "validationPasswordRequired": "Salasana on pakollinen",
+    "validationPasswordMinLength": "Salasanan pitää olla vähintään 8 merkkiä",
+    "validationPasswordMismatch": "Salasanat eivät täsmää",
+    "noUsers": "Ei käyttäjiä"
   }
 }

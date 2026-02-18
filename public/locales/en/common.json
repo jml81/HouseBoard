@@ -11,14 +11,16 @@
     "events": "Events",
     "materials": "Materials",
     "marketplace": "Marketplace",
-    "more": "More"
+    "more": "More",
+    "profile": "Profile"
   },
   "nav_plus": {
     "title": "HouseBoard+",
     "meetings": "Meetings",
     "board": "Board",
     "apartments": "Apartments",
-    "contacts": "Contacts"
+    "contacts": "Contacts",
+    "users": "Users"
   },
   "common": {
     "loading": "Loading...",
@@ -50,6 +52,7 @@
     "email": "Email",
     "password": "Password",
     "loginError": "Invalid email or password",
+    "accountLocked": "Account is locked. Please contact the property manager.",
     "sessionExpired": "Your session has expired. Please log in again.",
     "managerToggle": "Manager mode",
     "managerModeOn": "Manager mode on",
@@ -347,5 +350,71 @@
     "talous": "Finance",
     "kunnossapito": "Maintenance",
     "muut": "Other"
+  },
+  "userRoles": {
+    "resident": "Resident",
+    "manager": "Property Manager"
+  },
+  "userStatuses": {
+    "active": "Active",
+    "locked": "Locked"
+  },
+  "profile": {
+    "title": "Profile",
+    "description": "Your details and settings",
+    "userInfo": "User information",
+    "name": "Name",
+    "email": "Email",
+    "apartment": "Apartment",
+    "role": "Role",
+    "editInfo": "Edit details",
+    "saveInfo": "Save",
+    "updateSuccess": "Details updated!",
+    "updateError": "Failed to update details",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "changePasswordSubmit": "Change password",
+    "passwordSuccess": "Password changed!",
+    "passwordError": "Failed to change password",
+    "passwordWrong": "Current password is incorrect",
+    "passwordMinLength": "Password must be at least 8 characters",
+    "passwordMismatch": "Passwords do not match"
+  },
+  "users": {
+    "title": "Users",
+    "description": "Manage housing association user accounts",
+    "createUser": "New user",
+    "createTitle": "New user",
+    "createDescription": "Create a new user account",
+    "editTitle": "Edit user",
+    "editDescription": "Edit user details",
+    "formName": "Name",
+    "formEmail": "Email",
+    "formApartment": "Apartment",
+    "formRole": "Role",
+    "formStatus": "Status",
+    "formPassword": "Password",
+    "formConfirmPassword": "Confirm password",
+    "submit": "Create",
+    "update": "Save",
+    "createSuccess": "User created!",
+    "updateSuccess": "User updated!",
+    "deleteSuccess": "User deleted",
+    "createError": "Failed to create user",
+    "updateError": "Failed to update user",
+    "deleteError": "Failed to delete user",
+    "duplicateEmail": "Email is already in use",
+    "deleteConfirm": "Are you sure you want to delete this user? Their bookings and marketplace items will be preserved.",
+    "deleteUser": "Delete user",
+    "cannotDeleteSelf": "You cannot delete your own account",
+    "validationNameRequired": "Name is required",
+    "validationEmailRequired": "Email is required",
+    "validationApartmentRequired": "Apartment is required",
+    "validationPasswordRequired": "Password is required",
+    "validationPasswordMinLength": "Password must be at least 8 characters",
+    "validationPasswordMismatch": "Passwords do not match",
+    "noUsers": "No users"
   }
 }
