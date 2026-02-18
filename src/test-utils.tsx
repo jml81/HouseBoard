@@ -13,6 +13,8 @@ import {
   RouterProvider,
 } from '@tanstack/react-router';
 import { routeTree } from './route-tree.gen';
+import type { User } from '@/types';
+import { useAuthStore } from '@/stores/auth-store';
 
 // Initialize test i18n instance
 const testI18n = i18n.createInstance();
@@ -63,6 +65,12 @@ void testI18n.use(initReactI18next).init({
         },
         language: { fi: 'Suomi', en: 'English', switch: 'Vaihda kieli' },
         auth: {
+          login: 'Kirjaudu sisään',
+          logout: 'Kirjaudu ulos',
+          email: 'Sähköposti',
+          password: 'Salasana',
+          loginError: 'Virheellinen sähköposti tai salasana',
+          sessionExpired: 'Istuntosi on vanhentunut. Kirjaudu uudelleen.',
           managerToggle: 'Isännöitsijätila',
           managerModeOn: 'Isännöitsijätila päällä',
           managerModeOff: 'Isännöitsijätila pois',
@@ -438,4 +446,33 @@ export function renderWithRouter(initialPath = '/'): RenderResult {
       </I18nextProvider>
     </QueryClientProvider>,
   );
+}
+
+// --- Auth test helpers ---
+
+export const TEST_RESIDENT: User = {
+  id: 'u1',
+  name: 'Aino Virtanen',
+  email: 'asukas@talo.fi',
+  apartment: 'A 12',
+  role: 'resident',
+};
+
+export const TEST_MANAGER: User = {
+  id: 'u2',
+  name: 'Mikko Lahtinen',
+  email: 'isannoitsija@talo.fi',
+  apartment: 'A 4',
+  role: 'manager',
+};
+
+export function setTestAuth(opts?: { isManager?: boolean }): void {
+  const isManager = opts?.isManager ?? false;
+  const user = isManager ? TEST_MANAGER : TEST_RESIDENT;
+  useAuthStore.setState({
+    isAuthenticated: true,
+    isManager,
+    user,
+    token: 'test-token',
+  });
 }

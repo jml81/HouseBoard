@@ -27,14 +27,17 @@ describe('apiClient', () => {
 
       const result = await apiClient.announcements.list();
       expect(result).toEqual(mockData);
-      expect(fetch).toHaveBeenCalledWith('/api/announcements');
+      expect(fetch).toHaveBeenCalledWith('/api/announcements', expect.objectContaining({}));
     });
 
     it('appends category query parameter', async () => {
       mockFetch([]);
 
       await apiClient.announcements.list('huolto');
-      expect(fetch).toHaveBeenCalledWith('/api/announcements?category=huolto');
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/announcements?category=huolto',
+        expect.objectContaining({}),
+      );
     });
   });
 
@@ -45,7 +48,7 @@ describe('apiClient', () => {
 
       const result = await apiClient.announcements.get('a1');
       expect(result).toEqual(mockData);
-      expect(fetch).toHaveBeenCalledWith('/api/announcements/a1');
+      expect(fetch).toHaveBeenCalledWith('/api/announcements/a1', expect.objectContaining({}));
     });
   });
 

@@ -62,7 +62,10 @@ describe('useEvents', () => {
     renderHook(() => useEvents('upcoming'), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/api/events?status=upcoming');
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/events?status=upcoming',
+        expect.objectContaining({}),
+      );
     });
   });
 });

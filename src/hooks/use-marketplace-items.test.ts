@@ -70,7 +70,10 @@ describe('useMarketplaceItems', () => {
     });
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/api/marketplace-items?category=huonekalu');
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/marketplace-items?category=huonekalu',
+        expect.objectContaining({}),
+      );
     });
   });
 });

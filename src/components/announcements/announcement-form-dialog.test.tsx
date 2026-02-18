@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '@/test-utils';
+import { renderWithProviders, setTestAuth } from '@/test-utils';
 import type { Announcement } from '@/types';
-import { useAuthStore } from '@/stores/auth-store';
 import { AnnouncementFormDialog } from './announcement-form-dialog';
 
 const mockAnnouncement: Announcement = {
@@ -43,10 +42,7 @@ function mockFetchError(status: number): void {
 
 describe('AnnouncementFormDialog', () => {
   beforeEach(() => {
-    useAuthStore.setState({
-      isManager: true,
-      user: { id: 'u1', name: 'Aino Virtanen', apartment: 'A 12', role: 'manager' },
-    });
+    setTestAuth({ isManager: true });
   });
 
   afterEach(() => {

@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithRouterContext } from '@/test-utils';
+import { renderWithRouterContext, setTestAuth } from '@/test-utils';
 import type { MarketplaceItem } from '@/types';
-import { useAuthStore } from '@/stores/auth-store';
 import { MarketplaceItemDetail } from './marketplace-item-detail';
 
 const mockItem: MarketplaceItem = {
@@ -59,10 +58,7 @@ describe('MarketplaceItemDetail', () => {
   beforeEach(() => {
     mockFetch();
     // Reset auth store to default (non-manager)
-    useAuthStore.setState({
-      isManager: false,
-      user: { id: 'u1', name: 'Aino Virtanen', apartment: 'A 12', role: 'resident' },
-    });
+    setTestAuth();
   });
 
   afterEach(() => {
@@ -128,7 +124,7 @@ describe('MarketplaceItemDetail', () => {
   });
 
   it('shows status and delete buttons for manager', async () => {
-    useAuthStore.setState({ isManager: true });
+    setTestAuth({ isManager: true });
     await renderWithRouterContext(<MarketplaceItemDetail item={mockItem} />);
     expect(screen.getByText('Merkitse myydyksi')).toBeInTheDocument();
     expect(screen.getByText('Poista tuote')).toBeInTheDocument();

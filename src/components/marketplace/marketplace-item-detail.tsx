@@ -47,7 +47,7 @@ export function MarketplaceItemDetail({ item }: MarketplaceItemDetailProps): Rea
   const deleteItem = useDeleteMarketplaceItem();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const isOwner = user.name === item.seller.name && user.apartment === item.seller.apartment;
+  const isOwner = user?.name === item.seller.name && user?.apartment === item.seller.apartment;
   const canManage = isOwner || isManager;
 
   async function handleStatusChange(newStatus: 'available' | 'sold' | 'reserved'): Promise<void> {

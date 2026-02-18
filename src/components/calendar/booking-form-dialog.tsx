@@ -154,8 +154,8 @@ function BookingFormBody({ booking, onOpenChange }: BookingFormBodyProps): React
           endTime,
           title: title.trim() || undefined,
           location: location.trim() || undefined,
-          bookerName: user.name,
-          apartment: user.apartment,
+          bookerName: user?.name ?? '',
+          apartment: user?.apartment ?? '',
         });
         toast.success(t('booking.createSuccess'));
       }

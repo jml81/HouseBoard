@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '@/test-utils';
+import { renderWithProviders, setTestAuth } from '@/test-utils';
 import type { Booking } from '@/types';
-import { useAuthStore } from '@/stores/auth-store';
 import { BookingFormDialog } from './booking-form-dialog';
 
 const mockBooking: Booking = {
@@ -44,10 +43,7 @@ function mockFetchError(status: number): void {
 
 describe('BookingFormDialog', () => {
   beforeEach(() => {
-    useAuthStore.setState({
-      isManager: false,
-      user: { id: 'u1', name: 'Aino Virtanen', apartment: 'A 12', role: 'resident' },
-    });
+    setTestAuth();
   });
 
   afterEach(() => {

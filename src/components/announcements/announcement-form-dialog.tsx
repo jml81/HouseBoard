@@ -130,7 +130,7 @@ function AnnouncementFormBody({
           summary: summary.trim(),
           content: content.trim(),
           category,
-          author: user.name,
+          author: user?.name ?? '',
         });
         toast.success(t('announcements.createSuccess'));
       }

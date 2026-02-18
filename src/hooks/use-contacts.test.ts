@@ -59,7 +59,7 @@ describe('useContacts', () => {
     renderHook(() => useContacts('huolto'), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/api/contacts?role=huolto');
+      expect(fetch).toHaveBeenCalledWith('/api/contacts?role=huolto', expect.objectContaining({}));
     });
   });
 });

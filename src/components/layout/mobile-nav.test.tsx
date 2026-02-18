@@ -1,8 +1,12 @@
 import { screen, waitFor, within } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { renderWithRouter } from '@/test-utils';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { renderWithRouter, setTestAuth } from '@/test-utils';
 
 describe('MobileNav', () => {
+  beforeEach(() => {
+    setTestAuth();
+  });
+
   it('renders mobile navigation items in Finnish', async () => {
     renderWithRouter('/kalenteri');
 

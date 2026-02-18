@@ -60,7 +60,7 @@ describe('useBoardMembers', () => {
     renderHook(() => useBoardMembers(), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/api/board-members');
+      expect(fetch).toHaveBeenCalledWith('/api/board-members', expect.objectContaining({}));
     });
   });
 });

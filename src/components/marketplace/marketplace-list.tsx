@@ -121,8 +121,8 @@ export function MarketplaceList(): React.JSX.Element {
         price: Number(formPrice) || 0,
         category: formCategory,
         condition: formCondition,
-        sellerName: user.name,
-        sellerApartment: user.apartment,
+        sellerName: user?.name ?? '',
+        sellerApartment: user?.apartment ?? '',
       });
       toast.success(t('marketplace.createSuccess'));
       setDialogOpen(false);

@@ -68,7 +68,10 @@ describe('useBookings', () => {
     renderHook(() => useBookings('sauna'), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/api/bookings?category=sauna');
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/bookings?category=sauna',
+        expect.objectContaining({}),
+      );
     });
   });
 });

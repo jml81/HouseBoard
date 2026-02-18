@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithRouterContext } from '@/test-utils';
+import { renderWithRouterContext, setTestAuth } from '@/test-utils';
 import { MarketplaceList } from './marketplace-list';
 
 const mockItems = [
@@ -154,6 +154,7 @@ function setupFetchMock(): void {
 
 describe('MarketplaceList', () => {
   beforeEach(() => {
+    setTestAuth();
     setupFetchMock();
   });
 

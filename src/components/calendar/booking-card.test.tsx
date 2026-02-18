@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '@/test-utils';
+import { renderWithProviders, setTestAuth } from '@/test-utils';
 import type { Booking } from '@/types';
-import { useAuthStore } from '@/stores/auth-store';
 import { BookingCard } from './booking-card';
 
 const mockBooking: Booking = {
@@ -40,10 +39,7 @@ function mockFetch(): void {
 describe('BookingCard', () => {
   beforeEach(() => {
     mockFetch();
-    useAuthStore.setState({
-      isManager: false,
-      user: { id: 'u1', name: 'Aino Virtanen', apartment: 'A 12', role: 'resident' },
-    });
+    setTestAuth();
   });
 
   afterEach(() => {
@@ -77,7 +73,7 @@ describe('BookingCard', () => {
   });
 
   it('shows edit/delete buttons for manager on any booking', () => {
-    useAuthStore.setState({ isManager: true });
+    setTestAuth({ isManager: true });
     renderWithProviders(<BookingCard booking={otherBooking} />);
     expect(screen.getByText('Muokkaa')).toBeInTheDocument();
     expect(screen.getByText('Peruuta varaus')).toBeInTheDocument();

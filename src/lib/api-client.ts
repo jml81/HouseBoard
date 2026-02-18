@@ -1,11 +1,13 @@
 import type {
   Announcement,
   AnnouncementCategory,
+  AuthResponse,
   Building,
   Booking,
   BookingCategory,
   HousingEvent,
   EventStatus,
+  LoginCredentials,
   Material,
   MaterialCategory,
   Meeting,
@@ -21,6 +23,7 @@ import type {
   ApartmentPayment,
   PaymentStatus,
 } from '@/types';
+import { useAuthStore } from '@/stores/auth-store';
 
 export class ApiError extends Error {
   status: number;
@@ -32,9 +35,26 @@ export class ApiError extends Error {
   }
 }
 
+function getAuthHeaders(): Record<string, string> {
+  const token = useAuthStore.getState().token;
+  if (token) {
+    return { Authorization: `Bearer ${token}` };
+  }
+  return {};
+}
+
+function handleUnauthorized(status: number): void {
+  if (status === 401) {
+    useAuthStore.getState().logout();
+  }
+}
+
 async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    headers: getAuthHeaders(),
+  });
   if (!response.ok) {
+    handleUnauthorized(response.status);
     throw new ApiError(response.status, `API error: ${response.status.toString()}`);
   }
   return response.json() as Promise<T>;
@@ -43,13 +63,17 @@ async function fetchJson<T>(url: string): Promise<T> {
 async function mutateJson<T>(url: string, options: { method: string; body?: unknown }): Promise<T> {
   const init: RequestInit = {
     method: options.method,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+    },
   };
   if (options.body !== undefined) {
     init.body = JSON.stringify(options.body);
   }
   const response = await fetch(url, init);
   if (!response.ok) {
+    handleUnauthorized(response.status);
     throw new ApiError(response.status, `API error: ${response.status.toString()}`);
   }
   return response.json() as Promise<T>;
@@ -134,6 +158,15 @@ export interface UpdateApartmentPaymentInput {
 }
 
 export const apiClient = {
+  auth: {
+    login(credentials: LoginCredentials): Promise<AuthResponse> {
+      return mutateJson<AuthResponse>('/api/auth/login', {
+        method: 'POST',
+        body: credentials,
+      });
+    },
+  },
+
   announcements: {
     list(category?: AnnouncementCategory): Promise<Announcement[]> {
       const url = category
