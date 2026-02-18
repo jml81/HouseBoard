@@ -1,7 +1,12 @@
 import { Hono } from 'hono';
 import type { Context, Next } from 'hono';
+import { secureHeaders } from 'hono/secure-headers';
+import { cors } from 'hono/cors';
+import { bodyLimit } from 'hono/body-limit';
 import { hashPassword, verifyPassword, signJwt, verifyJwt } from './auth-utils.js';
 import type { JwtPayload } from './auth-utils.js';
+import { createRateLimiter } from './rate-limiter.js';
+import { isValidEmail } from './validation-utils.js';
 
 interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
@@ -489,6 +494,47 @@ const VALID_USER_STATUSES = ['active', 'locked'];
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
+// --- Rate limiter ---
+
+const loginRateLimiter = createRateLimiter({ maxRequests: 5, windowMs: 60_000 });
+
+// --- Security middleware ---
+
+app.use(
+  '*',
+  secureHeaders({
+    strictTransportSecurity: 'max-age=63072000; includeSubDomains; preload',
+    xFrameOptions: 'DENY',
+    xContentTypeOptions: 'nosniff',
+    referrerPolicy: 'strict-origin-when-cross-origin',
+  }),
+);
+
+app.use(
+  '/api/*',
+  cors({
+    origin: (origin) => {
+      if (!origin) return '';
+      if (origin.endsWith('.pages.dev') || origin.endsWith('.workers.dev')) return origin;
+      if (origin === 'http://localhost:5173' || origin === 'http://localhost:8788') return origin;
+      return '';
+    },
+    allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 86400,
+  }),
+);
+
+app.use(
+  '/api/*',
+  bodyLimit({
+    maxSize: 100 * 1024,
+    onError: (c) => {
+      return c.json({ error: 'Request body too large' }, 413);
+    },
+  }),
+);
+
 // Health check (no auth required)
 app.get('/api/health', (c) => {
   return c.json({ status: 'ok' });
@@ -497,10 +543,22 @@ app.get('/api/health', (c) => {
 // --- Auth endpoints (no auth required) ---
 
 app.post('/api/auth/login', async (c) => {
+  const clientIp = c.req.header('cf-connecting-ip') ?? c.req.header('x-forwarded-for') ?? 'unknown';
+
+  if (!loginRateLimiter.check(clientIp)) {
+    console.log(JSON.stringify({ event: 'login_rate_limited', ip: clientIp }));
+    return c.json({ error: 'Too many login attempts. Please try again later.' }, 429);
+  }
+
   const body = await c.req.json<Record<string, unknown>>();
 
   if (!body.email || typeof body.email !== 'string' || !body.password || typeof body.password !== 'string') {
     return c.json({ error: 'Email and password are required' }, 400);
+  }
+
+  if (!isValidEmail(body.email)) {
+    console.log(JSON.stringify({ event: 'login_failed', reason: 'invalid_email_format', ip: clientIp }));
+    return c.json({ error: 'Invalid email or password' }, 401);
   }
 
   const user = await c.env.DB.prepare('SELECT * FROM users WHERE email = ?')
@@ -508,15 +566,18 @@ app.post('/api/auth/login', async (c) => {
     .first<UserRow>();
 
   if (!user) {
+    console.log(JSON.stringify({ event: 'login_failed', reason: 'user_not_found', ip: clientIp }));
     return c.json({ error: 'Invalid email or password' }, 401);
   }
 
   const valid = await verifyPassword(body.password, user.password_hash);
   if (!valid) {
+    console.log(JSON.stringify({ event: 'login_failed', reason: 'wrong_password', ip: clientIp, userId: user.id }));
     return c.json({ error: 'Invalid email or password' }, 401);
   }
 
   if (user.status !== 'active') {
+    console.log(JSON.stringify({ event: 'login_failed', reason: 'account_locked', ip: clientIp, userId: user.id }));
     return c.json({ error: 'Account is locked' }, 403);
   }
 
@@ -531,6 +592,7 @@ app.post('/api/auth/login', async (c) => {
     c.env.JWT_SECRET,
   );
 
+  console.log(JSON.stringify({ event: 'login_success', ip: clientIp, userId: user.id }));
   return c.json({ token, user: toUserResponse(user) });
 });
 
@@ -1626,6 +1688,9 @@ app.post('/api/users', requireManager(), async (c) => {
   }
   if (!body.role || !VALID_USER_ROLES.includes(body.role as string)) {
     errors.push('invalid role');
+  }
+  if (body.email && typeof body.email === 'string' && !isValidEmail(body.email.trim())) {
+    errors.push('invalid email format');
   }
 
   if (errors.length > 0) {

@@ -112,4 +112,18 @@ jobs:
           echo "$HTML" | grep -q '<div id="root">' || { echo "FAIL: / HTML"; exit 1; }
           echo "OK: HTML contains root div"
 
+          echo "Testing security headers..."
+          HEADERS=$(curl -sI https://houseboard.pages.dev/api/health)
+          echo "$HEADERS" | grep -qi "x-frame-options: DENY" || { echo "FAIL: missing X-Frame-Options"; echo "$HEADERS"; exit 1; }
+          echo "$HEADERS" | grep -qi "x-content-type-options: nosniff" || { echo "FAIL: missing X-Content-Type-Options"; echo "$HEADERS"; exit 1; }
+          echo "$HEADERS" | grep -qi "strict-transport-security" || { echo "FAIL: missing HSTS"; echo "$HEADERS"; exit 1; }
+          echo "OK: security headers present"
+
+          echo "Testing rate limit does not trigger on single attempt..."
+          RL_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST https://houseboard.pages.dev/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"wrong@test.fi","password":"wrongpass"}')
+          [ "$RL_STATUS" = "401" ] || { echo "FAIL: expected 401, got $RL_STATUS"; exit 1; }
+          echo "OK: single failed login returns 401 (not 429)"
+
           echo "All smoke tests passed!"
