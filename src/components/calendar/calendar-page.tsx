@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { addMonths, subMonths, format, isSameDay } from 'date-fns';
 import type { BookingCategory } from '@/types';
 import { useBookings } from '@/hooks/use-bookings';
@@ -11,12 +11,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { CalendarGrid } from './calendar-grid';
 import { BookingList } from './booking-list';
 import { CategoryFilter } from './category-filter';
+import { BookingFormDialog } from './booking-form-dialog';
 
 export function CalendarPage(): React.JSX.Element {
   const { t } = useTranslation();
   const [currentMonth, setCurrentMonth] = useState(() => new Date(2026, 2, 1)); // March 2026
   const [selectedCategory, setSelectedCategory] = useState<BookingCategory | null>(null);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { data: bookings = [] } = useBookings();
 
   const filteredBookings = selectedCategory
@@ -42,7 +44,20 @@ export function CalendarPage(): React.JSX.Element {
 
   return (
     <div>
-      <PageHeader titleKey="calendar.title" descriptionKey="calendar.description" />
+      <PageHeader
+        titleKey="calendar.title"
+        descriptionKey="calendar.description"
+        actions={
+          <Button
+            size="sm"
+            className="gap-1 bg-hb-accent hover:bg-hb-accent/90"
+            onClick={() => setCreateDialogOpen(true)}
+          >
+            <Plus className="size-4" />
+            {t('booking.createTitle')}
+          </Button>
+        }
+      />
 
       <div className="space-y-4 p-6">
         <CategoryFilter selected={selectedCategory} onSelect={setSelectedCategory} />
@@ -84,6 +99,8 @@ export function CalendarPage(): React.JSX.Element {
           </TabsContent>
         </Tabs>
       </div>
+
+      <BookingFormDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
     </div>
   );
 }
