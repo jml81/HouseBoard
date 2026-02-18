@@ -147,6 +147,19 @@ CREATE TABLE IF NOT EXISTS marketplace_items (
 CREATE INDEX IF NOT EXISTS idx_marketplace_items_category_status ON marketplace_items(category, status);
 CREATE INDEX IF NOT EXISTS idx_marketplace_items_published_at ON marketplace_items(published_at DESC);
 
+-- Users
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  name TEXT NOT NULL,
+  apartment TEXT NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('resident','manager')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
 -- Apartment payments
 CREATE TABLE IF NOT EXISTS apartment_payments (
   apartment_id TEXT PRIMARY KEY REFERENCES apartments(id),

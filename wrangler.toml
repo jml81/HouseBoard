@@ -4,10 +4,8 @@ name = "houseboard"
 compatibility_date = "2026-01-01"
 pages_build_output_dir = "dist"
 
-# Uncomment and configure as needed:
-
-# [vars]
-# API_BASE_URL = "https://api.example.com"
+[vars]
+JWT_SECRET = "dev-secret-do-not-use-in-production"
 
 # [[kv_namespaces]]
 # binding = "KV"

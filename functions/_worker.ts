@@ -1,10 +1,17 @@
 import { Hono } from 'hono';
-import { basicAuth } from 'hono/basic-auth';
+import type { Context, Next } from 'hono';
+import { verifyPassword, signJwt, verifyJwt } from './auth-utils.js';
+import type { JwtPayload } from './auth-utils.js';
 
 interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
   DB: D1Database;
+  JWT_SECRET: string;
 }
+
+type Variables = {
+  user: JwtPayload;
+};
 
 // --- Row interfaces (snake_case from D1) ---
 
@@ -139,6 +146,34 @@ interface ApartmentPaymentRow {
   hoitovastike: number;
   rahoitusvastike: number;
   vesimaksu: number;
+}
+
+interface UserRow {
+  id: string;
+  email: string;
+  password_hash: string;
+  name: string;
+  apartment: string;
+  role: string;
+  created_at: string;
+}
+
+interface UserResponse {
+  id: string;
+  email: string;
+  name: string;
+  apartment: string;
+  role: string;
+}
+
+function toUserResponse(row: UserRow): UserResponse {
+  return {
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    apartment: row.apartment,
+    role: row.role,
+  };
 }
 
 // --- Response interfaces (camelCase for JSON) ---
@@ -439,21 +474,105 @@ const VALID_PAYMENT_STATUSES = ['paid', 'pending', 'overdue'];
 
 // --- App ---
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
-// Basic authentication
-app.use(
-  '*',
-  basicAuth({
-    username: 'demo',
-    password: 'Talo2026!',
-  }),
-);
-
-// Health check
+// Health check (no auth required)
 app.get('/api/health', (c) => {
   return c.json({ status: 'ok' });
 });
+
+// --- Auth endpoints (no auth required) ---
+
+app.post('/api/auth/login', async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+
+  if (!body.email || typeof body.email !== 'string' || !body.password || typeof body.password !== 'string') {
+    return c.json({ error: 'Email and password are required' }, 400);
+  }
+
+  const user = await c.env.DB.prepare('SELECT * FROM users WHERE email = ?')
+    .bind(body.email)
+    .first<UserRow>();
+
+  if (!user) {
+    return c.json({ error: 'Invalid email or password' }, 401);
+  }
+
+  const valid = await verifyPassword(body.password, user.password_hash);
+  if (!valid) {
+    return c.json({ error: 'Invalid email or password' }, 401);
+  }
+
+  const token = await signJwt(
+    {
+      sub: user.id,
+      email: user.email,
+      name: user.name,
+      apartment: user.apartment,
+      role: user.role as 'resident' | 'manager',
+    },
+    c.env.JWT_SECRET,
+  );
+
+  return c.json({ token, user: toUserResponse(user) });
+});
+
+app.get('/api/auth/me', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const token = authHeader.slice(7);
+  const payload = await verifyJwt(token, c.env.JWT_SECRET);
+  if (!payload) {
+    return c.json({ error: 'Invalid or expired token' }, 401);
+  }
+
+  return c.json({
+    id: payload.sub,
+    email: payload.email,
+    name: payload.name,
+    apartment: payload.apartment,
+    role: payload.role,
+  });
+});
+
+// --- JWT authentication middleware (all routes below) ---
+
+app.use('/api/*', async (c: Context<{ Bindings: Env; Variables: Variables }>, next: Next) => {
+  // Skip auth endpoints and health check
+  const path = new URL(c.req.url).pathname;
+  if (path === '/api/health' || path.startsWith('/api/auth/')) {
+    return next();
+  }
+
+  const authHeader = c.req.header('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const token = authHeader.slice(7);
+  const payload = await verifyJwt(token, c.env.JWT_SECRET);
+  if (!payload) {
+    return c.json({ error: 'Invalid or expired token' }, 401);
+  }
+
+  c.set('user', payload);
+  return next();
+});
+
+// --- Manager-only middleware for mutation endpoints ---
+
+function requireManager(): (c: Context<{ Bindings: Env; Variables: Variables }>, next: Next) => Promise<Response | void> {
+  return async (c, next) => {
+    const user = c.get('user');
+    if (user.role !== 'manager') {
+      return c.json({ error: 'Forbidden: manager role required' }, 403);
+    }
+    return next();
+  };
+}
 
 // --- Announcements ---
 
@@ -489,7 +608,7 @@ app.get('/api/announcements/:id', async (c) => {
   return c.json(toAnnouncementResponse(row));
 });
 
-app.post('/api/announcements', async (c) => {
+app.post('/api/announcements', requireManager(), async (c) => {
   const body = await c.req.json<Record<string, unknown>>();
 
   const errors: string[] = [];
@@ -538,7 +657,7 @@ app.post('/api/announcements', async (c) => {
   return c.json(toAnnouncementResponse(row!), 201);
 });
 
-app.patch('/api/announcements/:id', async (c) => {
+app.patch('/api/announcements/:id', requireManager(), async (c) => {
   const id = c.req.param('id');
   const body = await c.req.json<Record<string, unknown>>();
 
@@ -602,7 +721,7 @@ app.patch('/api/announcements/:id', async (c) => {
   return c.json(toAnnouncementResponse(row!));
 });
 
-app.delete('/api/announcements/:id', async (c) => {
+app.delete('/api/announcements/:id', requireManager(), async (c) => {
   const id = c.req.param('id');
 
   const existing = await c.env.DB.prepare('SELECT * FROM announcements WHERE id = ?')
@@ -1244,7 +1363,7 @@ app.get('/api/apartments/:id/payments', async (c) => {
   return c.json(toApartmentPaymentResponse(row));
 });
 
-app.post('/api/apartment-payments', async (c) => {
+app.post('/api/apartment-payments', requireManager(), async (c) => {
   const body = await c.req.json<Record<string, unknown>>();
 
   const errors: string[] = [];
@@ -1317,7 +1436,7 @@ app.post('/api/apartment-payments', async (c) => {
   return c.json(toApartmentPaymentResponse(row!), 201);
 });
 
-app.patch('/api/apartment-payments/:apartmentId', async (c) => {
+app.patch('/api/apartment-payments/:apartmentId', requireManager(), async (c) => {
   const apartmentId = c.req.param('apartmentId');
   const body = await c.req.json<Record<string, unknown>>();
 
@@ -1405,7 +1524,7 @@ app.patch('/api/apartment-payments/:apartmentId', async (c) => {
   return c.json(toApartmentPaymentResponse(row!));
 });
 
-app.delete('/api/apartment-payments/:apartmentId', async (c) => {
+app.delete('/api/apartment-payments/:apartmentId', requireManager(), async (c) => {
   const apartmentId = c.req.param('apartmentId');
 
   const existing = await c.env.DB.prepare('SELECT apartment_id FROM apartment_payments WHERE apartment_id = ?')
