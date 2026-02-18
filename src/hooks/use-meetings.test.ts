@@ -62,7 +62,10 @@ describe('useMeetings', () => {
     renderHook(() => useMeetings('upcoming'), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/api/meetings?status=upcoming');
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/meetings?status=upcoming',
+        expect.objectContaining({}),
+      );
     });
   });
 });

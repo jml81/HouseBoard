@@ -59,7 +59,10 @@ describe('useMaterials', () => {
     renderHook(() => useMaterials('talous'), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/api/materials?category=talous');
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/materials?category=talous',
+        expect.objectContaining({}),
+      );
     });
   });
 });

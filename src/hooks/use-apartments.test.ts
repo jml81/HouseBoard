@@ -79,7 +79,10 @@ describe('useApartments', () => {
     renderHook(() => useApartments('A'), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/api/apartments?staircase=A');
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/apartments?staircase=A',
+        expect.objectContaining({}),
+      );
     });
   });
 });

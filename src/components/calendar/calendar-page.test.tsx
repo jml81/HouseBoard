@@ -15,6 +15,7 @@ const mockBookings = [
     location: 'Taloyhtiön sauna',
     bookerName: 'Virtanen Matti',
     apartment: 'A 12',
+    createdBy: null,
   },
 ];
 

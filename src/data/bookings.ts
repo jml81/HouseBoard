@@ -11,6 +11,7 @@ export const bookings: Booking[] = [
     location: 'Taloyhtiön sauna',
     bookerName: 'Virtanen Matti',
     apartment: 'A 12',
+    createdBy: null,
   },
   {
     id: 'b2',
@@ -22,6 +23,7 @@ export const bookings: Booking[] = [
     location: 'Pesutupa',
     bookerName: 'Korhonen Anna',
     apartment: 'B 3',
+    createdBy: null,
   },
   {
     id: 'b3',
@@ -33,6 +35,7 @@ export const bookings: Booking[] = [
     location: 'Taloyhtiön sauna',
     bookerName: 'Nieminen Juha',
     apartment: 'A 8',
+    createdBy: null,
   },
   {
     id: 'b4',
@@ -44,6 +47,7 @@ export const bookings: Booking[] = [
     location: 'Kerhohuone',
     bookerName: 'Mäkinen Liisa',
     apartment: 'C 1',
+    createdBy: null,
   },
   {
     id: 'b5',
@@ -55,6 +59,7 @@ export const bookings: Booking[] = [
     location: 'Taloyhtiön sauna',
     bookerName: 'Laine Petri',
     apartment: 'B 7',
+    createdBy: null,
   },
   {
     id: 'b6',
@@ -66,6 +71,7 @@ export const bookings: Booking[] = [
     location: 'Pesutupa',
     bookerName: 'Hämäläinen Sari',
     apartment: 'A 4',
+    createdBy: null,
   },
   {
     id: 'b7',
@@ -77,6 +83,7 @@ export const bookings: Booking[] = [
     location: 'Taloyhtiön sauna',
     bookerName: 'Virtanen Matti',
     apartment: 'A 12',
+    createdBy: null,
   },
   {
     id: 'b8',
@@ -88,6 +95,7 @@ export const bookings: Booking[] = [
     location: 'Piha-alue',
     bookerName: 'Hallitus',
     apartment: '-',
+    createdBy: null,
   },
   {
     id: 'b9',
@@ -99,6 +107,7 @@ export const bookings: Booking[] = [
     location: 'Kerhohuone',
     bookerName: 'Järvinen Mikko',
     apartment: 'C 5',
+    createdBy: null,
   },
   {
     id: 'b10',
@@ -110,6 +119,7 @@ export const bookings: Booking[] = [
     location: 'Taloyhtiön sauna',
     bookerName: 'Korhonen Anna',
     apartment: 'B 3',
+    createdBy: null,
   },
   {
     id: 'b11',
@@ -121,6 +131,7 @@ export const bookings: Booking[] = [
     location: 'Pesutupa',
     bookerName: 'Laine Petri',
     apartment: 'B 7',
+    createdBy: null,
   },
   {
     id: 'b12',
@@ -132,6 +143,7 @@ export const bookings: Booking[] = [
     location: 'Taloyhtiön sauna',
     bookerName: 'Nieminen Juha',
     apartment: 'A 8',
+    createdBy: null,
   },
   {
     id: 'b13',
@@ -143,6 +155,7 @@ export const bookings: Booking[] = [
     location: 'Kerhohuone',
     bookerName: 'Mäkinen Liisa',
     apartment: 'C 1',
+    createdBy: null,
   },
   {
     id: 'b14',
@@ -154,5 +167,6 @@ export const bookings: Booking[] = [
     location: 'Pesutupa',
     bookerName: 'Hämäläinen Sari',
     apartment: 'A 4',
+    createdBy: null,
   },
 ];

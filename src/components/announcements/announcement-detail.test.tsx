@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithRouterContext } from '@/test-utils';
-import { useAuthStore } from '@/stores/auth-store';
+import { renderWithRouterContext, setTestAuth } from '@/test-utils';
 import type { Announcement } from '@/types';
 import { AnnouncementDetail } from './announcement-detail';
 
@@ -28,7 +27,7 @@ describe('AnnouncementDetail', () => {
         }),
       ),
     );
-    useAuthStore.setState({ isManager: false });
+    setTestAuth();
   });
 
   afterEach(() => {
@@ -74,14 +73,14 @@ describe('AnnouncementDetail', () => {
   });
 
   it('shows edit/delete buttons for manager', async () => {
-    useAuthStore.setState({ isManager: true });
+    setTestAuth({ isManager: true });
     await renderWithRouterContext(<AnnouncementDetail announcement={mockAnnouncement} />);
     expect(screen.getByText('Muokkaa')).toBeInTheDocument();
     expect(screen.getByText('Poista tiedote')).toBeInTheDocument();
   });
 
   it('opens delete confirmation dialog when delete button clicked', async () => {
-    useAuthStore.setState({ isManager: true });
+    setTestAuth({ isManager: true });
     const user = userEvent.setup();
     await renderWithRouterContext(<AnnouncementDetail announcement={mockAnnouncement} />);
     await user.click(screen.getByText('Poista tiedote'));

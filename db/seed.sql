@@ -2,8 +2,16 @@
 DELETE FROM apartment_payments;
 DELETE FROM meeting_documents;
 
+-- Delete users
+DELETE FROM users;
+
 -- Delete parent and independent tables
 DELETE FROM announcements;
+
+-- Users (PBKDF2-SHA256, 100k iterations, pre-computed hashes)
+INSERT INTO users (id, email, password_hash, name, apartment, role, created_at) VALUES
+('u1', 'asukas@talo.fi', 'a1b2c3d4e5f6a7b8a1b2c3d4e5f6a7b8:08110f9f20f10a8f6c4ec128cd18d002ce7b84afc70370e8dee255f5b48c554a', 'Aino Virtanen', 'A 12', 'resident', '2026-01-01T00:00:00Z'),
+('u2', 'isannoitsija@talo.fi', 'b2c3d4e5f6a7b8a1b2c3d4e5f6a7b8a1:a0acde421ed918e028b4bbf57ea30255527b3e75e1e0d3a074e59176bc42008f', 'Mikko Lahtinen', 'A 4', 'manager', '2026-01-01T00:00:00Z');
 
 INSERT INTO announcements (id, title, summary, content, category, author, published_at, is_new) VALUES
 ('a1', 'Kevätsiivous 15.3.2026', 'Taloyhtiön kevätsiivous järjestetään lauantaina 15.3. Kaikki asukkaat ovat tervetulleita!', 'Hyvät asukkaat,
@@ -108,21 +116,21 @@ INSERT INTO building (id, name, address, postal_code, city, apartments, build_ye
 -- Bookings
 DELETE FROM bookings;
 
-INSERT INTO bookings (id, title, date, start_time, end_time, category, location, booker_name, apartment) VALUES
-('b1', 'Saunavuoro', '2026-03-02', '18:00', '20:00', 'sauna', 'Taloyhtiön sauna', 'Virtanen Matti', 'A 12'),
-('b2', 'Pyykinpesu', '2026-03-03', '08:00', '12:00', 'pesutupa', 'Pesutupa', 'Korhonen Anna', 'B 3'),
-('b3', 'Saunavuoro', '2026-03-04', '18:00', '20:00', 'sauna', 'Taloyhtiön sauna', 'Nieminen Juha', 'A 8'),
-('b4', 'Kerhohuone varaus', '2026-03-05', '14:00', '18:00', 'kerhohuone', 'Kerhohuone', 'Mäkinen Liisa', 'C 1'),
-('b5', 'Saunavuoro', '2026-03-06', '18:00', '20:00', 'sauna', 'Taloyhtiön sauna', 'Laine Petri', 'B 7'),
-('b6', 'Pyykinpesu', '2026-03-07', '10:00', '14:00', 'pesutupa', 'Pesutupa', 'Hämäläinen Sari', 'A 4'),
-('b7', 'Saunavuoro', '2026-03-09', '18:00', '20:00', 'sauna', 'Taloyhtiön sauna', 'Virtanen Matti', 'A 12'),
-('b8', 'Kevättalkoot', '2026-03-15', '10:00', '15:00', 'talkoot', 'Piha-alue', 'Hallitus', '-'),
-('b9', 'Kerhohuone varaus', '2026-03-15', '16:00', '20:00', 'kerhohuone', 'Kerhohuone', 'Järvinen Mikko', 'C 5'),
-('b10', 'Saunavuoro', '2026-03-11', '18:00', '20:00', 'sauna', 'Taloyhtiön sauna', 'Korhonen Anna', 'B 3'),
-('b11', 'Pyykinpesu', '2026-03-17', '08:00', '12:00', 'pesutupa', 'Pesutupa', 'Laine Petri', 'B 7'),
-('b12', 'Saunavuoro', '2026-03-18', '18:00', '20:00', 'sauna', 'Taloyhtiön sauna', 'Nieminen Juha', 'A 8'),
-('b13', 'Kerhohuone varaus', '2026-03-22', '10:00', '14:00', 'kerhohuone', 'Kerhohuone', 'Mäkinen Liisa', 'C 1'),
-('b14', 'Pyykinpesu', '2026-03-24', '10:00', '14:00', 'pesutupa', 'Pesutupa', 'Hämäläinen Sari', 'A 4');
+INSERT INTO bookings (id, title, date, start_time, end_time, category, location, booker_name, apartment, created_by) VALUES
+('b1', 'Saunavuoro', '2026-03-02', '18:00', '20:00', 'sauna', 'Taloyhtiön sauna', 'Virtanen Matti', 'A 12', 'u1'),
+('b2', 'Pyykinpesu', '2026-03-03', '08:00', '12:00', 'pesutupa', 'Pesutupa', 'Korhonen Anna', 'B 3', NULL),
+('b3', 'Saunavuoro', '2026-03-04', '18:00', '20:00', 'sauna', 'Taloyhtiön sauna', 'Nieminen Juha', 'A 8', NULL),
+('b4', 'Kerhohuone varaus', '2026-03-05', '14:00', '18:00', 'kerhohuone', 'Kerhohuone', 'Mäkinen Liisa', 'C 1', NULL),
+('b5', 'Saunavuoro', '2026-03-06', '18:00', '20:00', 'sauna', 'Taloyhtiön sauna', 'Laine Petri', 'B 7', NULL),
+('b6', 'Pyykinpesu', '2026-03-07', '10:00', '14:00', 'pesutupa', 'Pesutupa', 'Hämäläinen Sari', 'A 4', NULL),
+('b7', 'Saunavuoro', '2026-03-09', '18:00', '20:00', 'sauna', 'Taloyhtiön sauna', 'Virtanen Matti', 'A 12', 'u1'),
+('b8', 'Kevättalkoot', '2026-03-15', '10:00', '15:00', 'talkoot', 'Piha-alue', 'Hallitus', '-', 'u2'),
+('b9', 'Kerhohuone varaus', '2026-03-15', '16:00', '20:00', 'kerhohuone', 'Kerhohuone', 'Järvinen Mikko', 'C 5', NULL),
+('b10', 'Saunavuoro', '2026-03-11', '18:00', '20:00', 'sauna', 'Taloyhtiön sauna', 'Korhonen Anna', 'B 3', NULL),
+('b11', 'Pyykinpesu', '2026-03-17', '08:00', '12:00', 'pesutupa', 'Pesutupa', 'Laine Petri', 'B 7', NULL),
+('b12', 'Saunavuoro', '2026-03-18', '18:00', '20:00', 'sauna', 'Taloyhtiön sauna', 'Nieminen Juha', 'A 8', NULL),
+('b13', 'Kerhohuone varaus', '2026-03-22', '10:00', '14:00', 'kerhohuone', 'Kerhohuone', 'Mäkinen Liisa', 'C 1', NULL),
+('b14', 'Pyykinpesu', '2026-03-24', '10:00', '14:00', 'pesutupa', 'Pesutupa', 'Hämäläinen Sari', 'A 4', NULL);
 
 -- Events
 DELETE FROM events;
@@ -233,17 +241,17 @@ INSERT INTO contacts (id, name, role, company, phone, email, description) VALUES
 -- Marketplace items
 DELETE FROM marketplace_items;
 
-INSERT INTO marketplace_items (id, title, description, price, category, condition, status, seller_name, seller_apartment, published_at) VALUES
-('mp1', 'Ikea Kallax -hylly, valkoinen', 'Hyväkuntoinen Ikea Kallax 4x2 -hylly. Pari pientä naarmua sivussa. Mitat 147x77 cm. Noudettava 2. kerroksesta, B-rappu.', 40, 'huonekalu', 'hyva', 'available', 'Minna Korhonen', 'B 12', '2026-02-14'),
-('mp2', 'Samsung Galaxy Tab A9', 'Vuoden vanha tabletti, alkuperäinen laturi ja suojakuori mukana. Akku kestää hyvin. Naarmuton näyttö.', 120, 'elektroniikka', 'hyva', 'available', 'Jari Virtanen', 'A 3', '2026-02-12'),
-('mp3', 'Naisten talvitakki, koko M', 'Lämmin untuvakki, harmaa. Käytetty yhden talven. Ei rikkoutumia tai tahroja. Merkki: Luhta.', 35, 'vaatteet', 'hyva', 'available', 'Liisa Mäkelä', 'C 22', '2026-02-10'),
-('mp4', 'Polkupyörä 26"', 'Toimiva kaupunkipyörä, 3 vaihdetta. Renkaat hyvässä kunnossa, vaihdevaijeri vaihdettu viime kesänä. Lukko mukana.', 60, 'urheilu', 'kohtalainen', 'available', 'Timo Nieminen', 'A 7', '2026-02-08'),
-('mp5', 'Lastenkirjapaketti, 15 kpl', 'Sekalainen kokoelma lastenkirjoja 3-7-vuotiaille. Mm. Mauri Kunnas, Tatu ja Patu, Peppi Pitkätossu.', 0, 'kirjat', 'kohtalainen', 'available', 'Anna Lahtinen', 'B 16', '2026-02-06'),
-('mp6', 'Kahvinkeitin Moccamaster', 'Klassinen Moccamaster-kahvinkeitin, punainen. Toimii moitteettomasti. Muutto pakottaa myymään.', 45, 'elektroniikka', 'hyva', 'reserved', 'Pekka Salminen', 'C 19', '2026-02-04'),
-('mp7', 'Sohvapöytä, tammea', 'Massiivitamminen sohvapöytä, 90x60 cm. Muutama käyttöjälki pinnassa mutta tukeva rakenne.', 75, 'huonekalu', 'kohtalainen', 'sold', 'Heikki Järvinen', 'A 5', '2026-01-28'),
-('mp8', 'Joogatarvikkeet', 'Joogamatto (Casall), 2 blokkia ja joogavyö. Käytetty muutaman kerran, lähes uudenveroiset.', 0, 'urheilu', 'uusi', 'available', 'Sari Rantala', 'B 9', '2026-02-01'),
-('mp9', 'Dekkarikokoelma, 8 kirjaa', 'Ilkka Remes -kokoelma: 8 dekkaria hyvässä kunnossa. Luettu kerran, ei taittuneita sivuja.', 15, 'kirjat', 'hyva', 'available', 'Markku Laine', 'C 24', '2026-01-25'),
-('mp10', 'Patja 80x200 cm', 'Jämäkkä vaahtomuovipatja, käytetty vierashuoneessa satunnaisesti. Suojattu päällisellä, puhdas ja hyväkuntoinen.', 25, 'muu', 'tyydyttava', 'available', 'Tiina Koskinen', 'A 2', '2026-01-20');
+INSERT INTO marketplace_items (id, title, description, price, category, condition, status, seller_name, seller_apartment, published_at, created_by) VALUES
+('mp1', 'Ikea Kallax -hylly, valkoinen', 'Hyväkuntoinen Ikea Kallax 4x2 -hylly. Pari pientä naarmua sivussa. Mitat 147x77 cm. Noudettava 2. kerroksesta, B-rappu.', 40, 'huonekalu', 'hyva', 'available', 'Minna Korhonen', 'B 12', '2026-02-14', 'u1'),
+('mp2', 'Samsung Galaxy Tab A9', 'Vuoden vanha tabletti, alkuperäinen laturi ja suojakuori mukana. Akku kestää hyvin. Naarmuton näyttö.', 120, 'elektroniikka', 'hyva', 'available', 'Jari Virtanen', 'A 3', '2026-02-12', NULL),
+('mp3', 'Naisten talvitakki, koko M', 'Lämmin untuvakki, harmaa. Käytetty yhden talven. Ei rikkoutumia tai tahroja. Merkki: Luhta.', 35, 'vaatteet', 'hyva', 'available', 'Liisa Mäkelä', 'C 22', '2026-02-10', NULL),
+('mp4', 'Polkupyörä 26"', 'Toimiva kaupunkipyörä, 3 vaihdetta. Renkaat hyvässä kunnossa, vaihdevaijeri vaihdettu viime kesänä. Lukko mukana.', 60, 'urheilu', 'kohtalainen', 'available', 'Timo Nieminen', 'A 7', '2026-02-08', NULL),
+('mp5', 'Lastenkirjapaketti, 15 kpl', 'Sekalainen kokoelma lastenkirjoja 3-7-vuotiaille. Mm. Mauri Kunnas, Tatu ja Patu, Peppi Pitkätossu.', 0, 'kirjat', 'kohtalainen', 'available', 'Anna Lahtinen', 'B 16', '2026-02-06', NULL),
+('mp6', 'Kahvinkeitin Moccamaster', 'Klassinen Moccamaster-kahvinkeitin, punainen. Toimii moitteettomasti. Muutto pakottaa myymään.', 45, 'elektroniikka', 'hyva', 'reserved', 'Pekka Salminen', 'C 19', '2026-02-04', NULL),
+('mp7', 'Sohvapöytä, tammea', 'Massiivitamminen sohvapöytä, 90x60 cm. Muutama käyttöjälki pinnassa mutta tukeva rakenne.', 75, 'huonekalu', 'kohtalainen', 'sold', 'Heikki Järvinen', 'A 5', '2026-01-28', NULL),
+('mp8', 'Joogatarvikkeet', 'Joogamatto (Casall), 2 blokkia ja joogavyö. Käytetty muutaman kerran, lähes uudenveroiset.', 0, 'urheilu', 'uusi', 'available', 'Sari Rantala', 'B 9', '2026-02-01', NULL),
+('mp9', 'Dekkarikokoelma, 8 kirjaa', 'Ilkka Remes -kokoelma: 8 dekkaria hyvässä kunnossa. Luettu kerran, ei taittuneita sivuja.', 15, 'kirjat', 'hyva', 'available', 'Markku Laine', 'C 24', '2026-01-25', NULL),
+('mp10', 'Patja 80x200 cm', 'Jämäkkä vaahtomuovipatja, käytetty vierashuoneessa satunnaisesti. Suojattu päällisellä, puhdas ja hyväkuntoinen.', 25, 'muu', 'tyydyttava', 'available', 'Tiina Koskinen', 'A 2', '2026-01-20', NULL);
 
 INSERT INTO apartment_payments (apartment_id, monthly_charge, payment_status, last_payment_date, arrears, hoitovastike, rahoitusvastike, vesimaksu) VALUES
 ('apt-a1', 240, 'paid', '2026-02-01', 0, 156, 60, 24),

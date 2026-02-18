@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithRouterContext } from '@/test-utils';
+import { renderWithRouterContext, setTestAuth } from '@/test-utils';
 import type { MarketplaceItem } from '@/types';
-import { useAuthStore } from '@/stores/auth-store';
 import { MarketplaceItemDetail } from './marketplace-item-detail';
 
 const mockItem: MarketplaceItem = {
@@ -16,6 +15,7 @@ const mockItem: MarketplaceItem = {
   status: 'available',
   seller: { name: 'Testi Myyjä', apartment: 'B 5' },
   publishedAt: '2026-02-12',
+  createdBy: 'other-user',
 };
 
 const freeItem: MarketplaceItem = {
@@ -24,11 +24,12 @@ const freeItem: MarketplaceItem = {
   price: 0,
 };
 
-// Item owned by the default auth user (Aino Virtanen, A 12)
+// Item owned by the default auth user (u1)
 const ownedItem: MarketplaceItem = {
   ...mockItem,
   id: 'test-3',
   seller: { name: 'Aino Virtanen', apartment: 'A 12' },
+  createdBy: 'u1',
 };
 
 const soldItem: MarketplaceItem = {
@@ -59,10 +60,7 @@ describe('MarketplaceItemDetail', () => {
   beforeEach(() => {
     mockFetch();
     // Reset auth store to default (non-manager)
-    useAuthStore.setState({
-      isManager: false,
-      user: { id: 'u1', name: 'Aino Virtanen', apartment: 'A 12', role: 'resident' },
-    });
+    setTestAuth();
   });
 
   afterEach(() => {
@@ -128,7 +126,7 @@ describe('MarketplaceItemDetail', () => {
   });
 
   it('shows status and delete buttons for manager', async () => {
-    useAuthStore.setState({ isManager: true });
+    setTestAuth({ isManager: true });
     await renderWithRouterContext(<MarketplaceItemDetail item={mockItem} />);
     expect(screen.getByText('Merkitse myydyksi')).toBeInTheDocument();
     expect(screen.getByText('Poista tuote')).toBeInTheDocument();

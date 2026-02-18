@@ -45,6 +45,12 @@
     "switch": "Vaihda kieli"
   },
   "auth": {
+    "login": "Kirjaudu sisään",
+    "logout": "Kirjaudu ulos",
+    "email": "Sähköposti",
+    "password": "Salasana",
+    "loginError": "Virheellinen sähköposti tai salasana",
+    "sessionExpired": "Istuntosi on vanhentunut. Kirjaudu uudelleen.",
     "managerToggle": "Isännöitsijätila",
     "managerModeOn": "Isännöitsijätila päällä",
     "managerModeOff": "Isännöitsijätila pois"

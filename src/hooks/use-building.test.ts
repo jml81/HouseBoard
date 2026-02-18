@@ -57,7 +57,7 @@ describe('useBuilding', () => {
     renderHook(() => useBuilding(), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/api/building');
+      expect(fetch).toHaveBeenCalledWith('/api/building', expect.objectContaining({}));
     });
   });
 });

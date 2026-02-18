@@ -1,11 +1,10 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { renderWithRouter } from '@/test-utils';
-import { useAuthStore } from '@/stores/auth-store';
+import { renderWithRouter, setTestAuth } from '@/test-utils';
 
 describe('Sidebar', () => {
   beforeEach(() => {
-    useAuthStore.setState({ isManager: false });
+    setTestAuth();
   });
 
   it('renders HouseBoard navigation links', async () => {
@@ -37,7 +36,7 @@ describe('Sidebar', () => {
   });
 
   it('renders HouseBoard+ navigation links when manager', async () => {
-    useAuthStore.setState({ isManager: true });
+    setTestAuth({ isManager: true });
     renderWithRouter('/kalenteri');
 
     await waitFor(() => {
@@ -52,7 +51,7 @@ describe('Sidebar', () => {
   });
 
   it('renders section headers when manager', async () => {
-    useAuthStore.setState({ isManager: true });
+    setTestAuth({ isManager: true });
     renderWithRouter('/kalenteri');
 
     await waitFor(() => {

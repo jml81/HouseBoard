@@ -67,7 +67,10 @@ describe('useAnnouncements', () => {
     renderHook(() => useAnnouncements('huolto'), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/api/announcements?category=huolto');
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/announcements?category=huolto',
+        expect.objectContaining({}),
+      );
     });
   });
 });

@@ -25,4 +25,5 @@ export interface MarketplaceItem {
   status: ItemStatus;
   seller: MarketplaceSeller;
   publishedAt: string; // ISO date string
+  createdBy: string | null;
 }

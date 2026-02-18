@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '@/test-utils';
-import { useAuthStore } from '@/stores/auth-store';
+import { renderWithProviders, setTestAuth } from '@/test-utils';
 import { ApartmentPaymentRow } from './apartment-payment-row';
 import type { Apartment, ApartmentPayment } from '@/types';
 
@@ -39,7 +38,7 @@ describe('ApartmentPaymentRow', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
-    useAuthStore.setState({ isManager: false });
+    setTestAuth();
   });
 
   it('renders apartment number and resident', () => {
@@ -97,7 +96,7 @@ describe('ApartmentPaymentRow', () => {
 
   it('does not show edit/delete buttons when not manager', async () => {
     const user = userEvent.setup();
-    useAuthStore.setState({ isManager: false });
+    setTestAuth();
 
     renderWithProviders(
       <ApartmentPaymentRow apartment={mockApartment} payment={mockPaymentPaid} />,
@@ -111,7 +110,7 @@ describe('ApartmentPaymentRow', () => {
 
   it('shows edit/delete buttons when manager and expanded', async () => {
     const user = userEvent.setup();
-    useAuthStore.setState({ isManager: true });
+    setTestAuth({ isManager: true });
 
     renderWithProviders(
       <ApartmentPaymentRow apartment={mockApartment} payment={mockPaymentPaid} />,
@@ -125,7 +124,7 @@ describe('ApartmentPaymentRow', () => {
 
   it('opens edit dialog on edit button click', async () => {
     const user = userEvent.setup();
-    useAuthStore.setState({ isManager: true });
+    setTestAuth({ isManager: true });
 
     renderWithProviders(
       <ApartmentPaymentRow apartment={mockApartment} payment={mockPaymentPaid} />,
@@ -139,7 +138,7 @@ describe('ApartmentPaymentRow', () => {
 
   it('opens delete confirmation dialog on delete button click', async () => {
     const user = userEvent.setup();
-    useAuthStore.setState({ isManager: true });
+    setTestAuth({ isManager: true });
 
     renderWithProviders(
       <ApartmentPaymentRow apartment={mockApartment} payment={mockPaymentPaid} />,
@@ -155,7 +154,7 @@ describe('ApartmentPaymentRow', () => {
 
   it('calls delete mutation when confirming delete', async () => {
     const user = userEvent.setup();
-    useAuthStore.setState({ isManager: true });
+    setTestAuth({ isManager: true });
 
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ success: true }), {

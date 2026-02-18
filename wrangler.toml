@@ -4,10 +4,9 @@ name = "houseboard"
 compatibility_date = "2026-01-01"
 pages_build_output_dir = "dist"
 
-# Uncomment and configure as needed:
-
-# [vars]
-# API_BASE_URL = "https://api.example.com"
+# JWT_SECRET is set via:
+# - .dev.vars for local development (wrangler pages dev)
+# - Cloudflare Pages secrets for production
 
 # [[kv_namespaces]]
 # binding = "KV"

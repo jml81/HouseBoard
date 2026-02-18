@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen } from '@testing-library/react';
-import { renderWithRouterContext } from '@/test-utils';
-import { useAuthStore } from '@/stores/auth-store';
+import { renderWithRouterContext, setTestAuth } from '@/test-utils';
 import { AnnouncementList } from './announcement-list';
 
 const mockAnnouncements = [
@@ -38,7 +37,7 @@ describe('AnnouncementList', () => {
         }),
       ),
     );
-    useAuthStore.setState({ isManager: false });
+    setTestAuth();
   });
 
   afterEach(() => {
@@ -87,7 +86,7 @@ describe('AnnouncementList', () => {
   });
 
   it('shows create button for manager', async () => {
-    useAuthStore.setState({ isManager: true });
+    setTestAuth({ isManager: true });
     await renderWithRouterContext(<AnnouncementList />);
     await screen.findByText('Kevätsiivous 15.3.2026');
     expect(screen.getByText('Uusi tiedote')).toBeInTheDocument();
