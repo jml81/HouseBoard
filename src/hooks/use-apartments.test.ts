@@ -7,6 +7,9 @@ import {
   useApartments,
   useApartmentPayments,
   useApartmentPayment,
+  useCreateApartmentPayment,
+  useUpdateApartmentPayment,
+  useDeleteApartmentPayment,
   apartmentKeys,
 } from './use-apartments';
 
@@ -115,6 +118,121 @@ describe('useApartmentPayment', () => {
     await waitFor(() => {
       expect(result.current.data).toEqual(mockItem);
     });
+  });
+});
+
+describe('useCreateApartmentPayment', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('sends POST request with correct URL and body', async () => {
+    const created = { ...mockPayments[0] };
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(created), {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { result } = renderHook(() => useCreateApartmentPayment(), {
+      wrapper: createWrapper(),
+    });
+
+    result.current.mutate({
+      apartmentId: 'apt-a1',
+      paymentStatus: 'paid',
+      lastPaymentDate: '2026-02-01',
+      arrears: 0,
+      hoitovastike: 156,
+      rahoitusvastike: 60,
+      vesimaksu: 24,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/apartment-payments',
+      expect.objectContaining({
+        method: 'POST',
+      }),
+    );
+  });
+});
+
+describe('useUpdateApartmentPayment', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('sends PATCH request with correct URL', async () => {
+    const updated = { ...mockPayments[0], paymentStatus: 'overdue' };
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(updated), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { result } = renderHook(() => useUpdateApartmentPayment(), {
+      wrapper: createWrapper(),
+    });
+
+    result.current.mutate({
+      apartmentId: 'apt-a1',
+      paymentStatus: 'overdue',
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/apartment-payments/apt-a1',
+      expect.objectContaining({
+        method: 'PATCH',
+      }),
+    );
+  });
+});
+
+describe('useDeleteApartmentPayment', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('sends DELETE request with correct URL', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { result } = renderHook(() => useDeleteApartmentPayment(), {
+      wrapper: createWrapper(),
+    });
+
+    result.current.mutate('apt-a1');
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/apartment-payments/apt-a1',
+      expect.objectContaining({
+        method: 'DELETE',
+      }),
+    );
   });
 });
 

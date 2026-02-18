@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Apartment, ApartmentPayment } from '@/types';
 import { apiClient } from '@/lib/api-client';
+import type { CreateApartmentPaymentInput, UpdateApartmentPaymentInput } from '@/lib/api-client';
 
 export const apartmentKeys = {
   all: ['apartments'] as const,
@@ -42,5 +43,41 @@ export function useApartmentPayment(apartmentId: string): {
   return useQuery({
     queryKey: apartmentKeys.payment(apartmentId),
     queryFn: () => apiClient.apartmentPayments.get(apartmentId),
+  });
+}
+
+export function useCreateApartmentPayment(): ReturnType<
+  typeof useMutation<ApartmentPayment, Error, CreateApartmentPaymentInput>
+> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateApartmentPaymentInput) => apiClient.apartmentPayments.create(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: apartmentKeys.payments() });
+    },
+  });
+}
+
+export function useUpdateApartmentPayment(): ReturnType<
+  typeof useMutation<ApartmentPayment, Error, UpdateApartmentPaymentInput>
+> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateApartmentPaymentInput) => apiClient.apartmentPayments.update(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: apartmentKeys.payments() });
+    },
+  });
+}
+
+export function useDeleteApartmentPayment(): ReturnType<
+  typeof useMutation<{ success: boolean }, Error, string>
+> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (apartmentId: string) => apiClient.apartmentPayments.delete(apartmentId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: apartmentKeys.payments() });
+    },
   });
 }
