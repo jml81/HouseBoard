@@ -10,7 +10,7 @@ interface RootLayoutProps {
 
 export function RootLayout({ children }: RootLayoutProps): React.JSX.Element {
   return (
-    <div className="flex h-dvh overflow-hidden">
+    <div className="flex h-dvh overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       <Sidebar />
 
       <div className="flex flex-1 flex-col overflow-hidden">

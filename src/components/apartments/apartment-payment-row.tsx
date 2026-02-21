@@ -48,7 +48,7 @@ export function ApartmentPaymentRow({
     <div className="rounded-lg border">
       <button
         type="button"
-        className="flex w-full items-center gap-4 p-3 text-left"
+        className="flex w-full flex-wrap items-center gap-2 p-3 text-left sm:flex-nowrap sm:gap-4"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="w-14 shrink-0">
@@ -60,15 +60,11 @@ export function ApartmentPaymentRow({
         <div className="min-w-0 flex-1 text-sm">
           <p className="truncate">{apartment.resident}</p>
         </div>
-        <p className="shrink-0 text-sm font-medium">
+        <p className="hidden shrink-0 text-sm font-medium sm:block">
           {payment.monthlyCharge} &euro;{t('apartments.payments.perMonth')}
         </p>
         <PaymentStatusBadge status={payment.paymentStatus} />
-        {payment.arrears > 0 && (
-          <Badge variant="destructive" className="shrink-0">
-            {payment.arrears} &euro;
-          </Badge>
-        )}
+        {payment.arrears > 0 && <Badge variant="destructive">{payment.arrears} &euro;</Badge>}
       </button>
       {expanded && (
         <div className="border-t bg-muted/50 px-3 py-3">
