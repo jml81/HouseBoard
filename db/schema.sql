@@ -65,7 +65,8 @@ CREATE TABLE IF NOT EXISTS materials (
   file_size TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   description TEXT NOT NULL,
-  created_by TEXT
+  created_by TEXT,
+  file_key TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_materials_updated_at ON materials(updated_at DESC);
@@ -91,7 +92,8 @@ CREATE TABLE IF NOT EXISTS meeting_documents (
   meeting_id TEXT NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   file_type TEXT NOT NULL CHECK (file_type IN ('pdf','xlsx','docx')),
-  file_size TEXT NOT NULL
+  file_size TEXT NOT NULL,
+  file_key TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_meeting_documents_meeting_id ON meeting_documents(meeting_id);

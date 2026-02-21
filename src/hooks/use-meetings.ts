@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Meeting, MeetingStatus } from '@/types';
+import type { Meeting, MeetingDocument, MeetingStatus } from '@/types';
 import { apiClient } from '@/lib/api-client';
 import type { CreateMeetingInput, UpdateMeetingInput } from '@/lib/api-client';
 
@@ -64,6 +64,32 @@ export function useDeleteMeeting(): ReturnType<
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => apiClient.meetings.delete(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: meetingKeys.all });
+    },
+  });
+}
+
+export function useUploadMeetingDocument(): ReturnType<
+  typeof useMutation<MeetingDocument, Error, { meetingId: string; file: File; name?: string }>
+> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { meetingId: string; file: File; name?: string }) =>
+      apiClient.meetingDocuments.upload(input.meetingId, input.file, input.name),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: meetingKeys.all });
+    },
+  });
+}
+
+export function useDeleteMeetingDocument(): ReturnType<
+  typeof useMutation<{ success: boolean }, Error, { meetingId: string; docId: string }>
+> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { meetingId: string; docId: string }) =>
+      apiClient.meetingDocuments.delete(input.meetingId, input.docId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: meetingKeys.all });
     },

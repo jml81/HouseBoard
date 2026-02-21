@@ -119,7 +119,7 @@ export function MeetingCard({ meeting }: MeetingCardProps): React.JSX.Element {
               </Button>
               {showDocuments && (
                 <div className="mt-2">
-                  <MeetingDocumentList documents={meeting.documents} />
+                  <MeetingDocumentList meetingId={meeting.id} documents={meeting.documents} />
                 </div>
               )}
             </div>

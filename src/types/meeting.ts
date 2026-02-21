@@ -7,6 +7,7 @@ export interface MeetingDocument {
   name: string;
   fileType: 'pdf' | 'xlsx' | 'docx';
   fileSize: string;
+  fileUrl: string | null;
 }
 
 export interface Meeting {

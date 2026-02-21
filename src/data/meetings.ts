@@ -13,9 +13,9 @@ export const meetings: Meeting[] = [
     description:
       'Varsinainen yhtiökokous. Esityslistalla tilinpäätös 2025, talousarvio 2026, hallituksen valinta ja putkiremontin rahoituspäätös.',
     documents: [
-      { id: 'd1', name: 'Kokouskutsu', fileType: 'pdf', fileSize: '245 KB' },
-      { id: 'd2', name: 'Tilinpäätös 2025', fileType: 'pdf', fileSize: '1.8 MB' },
-      { id: 'd3', name: 'Talousarvio 2026', fileType: 'xlsx', fileSize: '340 KB' },
+      { id: 'd1', name: 'Kokouskutsu', fileType: 'pdf', fileSize: '245 KB', fileUrl: null },
+      { id: 'd2', name: 'Tilinpäätös 2025', fileType: 'pdf', fileSize: '1.8 MB', fileUrl: null },
+      { id: 'd3', name: 'Talousarvio 2026', fileType: 'xlsx', fileSize: '340 KB', fileUrl: null },
     ],
   },
   {
@@ -29,7 +29,9 @@ export const meetings: Meeting[] = [
     location: 'Kerhohuone',
     description:
       'Hallituksen kuukausikokous. Aiheina putkiremontin valmistelu, talousarvion seuranta ja piha-alueen kunnostus.',
-    documents: [{ id: 'd4', name: 'Esityslista', fileType: 'pdf', fileSize: '120 KB' }],
+    documents: [
+      { id: 'd4', name: 'Esityslista', fileType: 'pdf', fileSize: '120 KB', fileUrl: null },
+    ],
   },
   {
     id: 'm3',
@@ -43,8 +45,8 @@ export const meetings: Meeting[] = [
     description:
       'Hallituksen kuukausikokous. Käsiteltiin putkiremontin tarjoukset ja valittiin urakoitsija.',
     documents: [
-      { id: 'd5', name: 'Esityslista', fileType: 'pdf', fileSize: '115 KB' },
-      { id: 'd6', name: 'Pöytäkirja', fileType: 'pdf', fileSize: '280 KB' },
+      { id: 'd5', name: 'Esityslista', fileType: 'pdf', fileSize: '115 KB', fileUrl: null },
+      { id: 'd6', name: 'Pöytäkirja', fileType: 'pdf', fileSize: '280 KB', fileUrl: null },
     ],
   },
   {
@@ -59,8 +61,8 @@ export const meetings: Meeting[] = [
     description:
       'Vuoden ensimmäinen hallituksen kokous. Käsiteltiin talousarvion toteutuma ja piha-alueen suunnitelmat.',
     documents: [
-      { id: 'd7', name: 'Esityslista', fileType: 'pdf', fileSize: '110 KB' },
-      { id: 'd8', name: 'Pöytäkirja', fileType: 'pdf', fileSize: '260 KB' },
+      { id: 'd7', name: 'Esityslista', fileType: 'pdf', fileSize: '110 KB', fileUrl: null },
+      { id: 'd8', name: 'Pöytäkirja', fileType: 'pdf', fileSize: '260 KB', fileUrl: null },
     ],
   },
   {
@@ -75,9 +77,15 @@ export const meetings: Meeting[] = [
     description:
       'Ylimääräinen yhtiökokous putkiremontin käynnistämiseksi. Päätettiin remontin laajuudesta ja aikataulusta.',
     documents: [
-      { id: 'd9', name: 'Kokouskutsu', fileType: 'pdf', fileSize: '200 KB' },
-      { id: 'd10', name: 'Pöytäkirja', fileType: 'pdf', fileSize: '350 KB' },
-      { id: 'd11', name: 'Putkiremontin tarjoukset', fileType: 'xlsx', fileSize: '890 KB' },
+      { id: 'd9', name: 'Kokouskutsu', fileType: 'pdf', fileSize: '200 KB', fileUrl: null },
+      { id: 'd10', name: 'Pöytäkirja', fileType: 'pdf', fileSize: '350 KB', fileUrl: null },
+      {
+        id: 'd11',
+        name: 'Putkiremontin tarjoukset',
+        fileType: 'xlsx',
+        fileSize: '890 KB',
+        fileUrl: null,
+      },
     ],
   },
   {
@@ -92,9 +100,9 @@ export const meetings: Meeting[] = [
     description:
       'Varsinainen yhtiökokous 2025. Vahvistettiin tilinpäätös, valittiin hallitus ja päätettiin yhtiövastikkeista.',
     documents: [
-      { id: 'd12', name: 'Kokouskutsu', fileType: 'pdf', fileSize: '230 KB' },
-      { id: 'd13', name: 'Pöytäkirja', fileType: 'pdf', fileSize: '420 KB' },
-      { id: 'd14', name: 'Tilinpäätös 2024', fileType: 'pdf', fileSize: '1.6 MB' },
+      { id: 'd12', name: 'Kokouskutsu', fileType: 'pdf', fileSize: '230 KB', fileUrl: null },
+      { id: 'd13', name: 'Pöytäkirja', fileType: 'pdf', fileSize: '420 KB', fileUrl: null },
+      { id: 'd14', name: 'Tilinpäätös 2024', fileType: 'pdf', fileSize: '1.6 MB', fileUrl: null },
     ],
   },
 ];

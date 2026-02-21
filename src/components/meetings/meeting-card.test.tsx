@@ -19,6 +19,20 @@ const upcomingMeeting: Meeting = {
   documents: [],
 };
 
+const meetingWithDocs: Meeting = {
+  ...upcomingMeeting,
+  id: 'm3',
+  documents: [
+    {
+      id: 'd1',
+      name: 'Esityslista',
+      fileType: 'pdf',
+      fileSize: '120 KB',
+      fileUrl: '/api/files/meetings/m3/doc.pdf',
+    },
+  ],
+};
+
 const completedMeeting: Meeting = {
   ...upcomingMeeting,
   id: 'm2',
@@ -118,5 +132,20 @@ describe('MeetingCard', () => {
         expect.objectContaining({ method: 'DELETE' }),
       );
     });
+  });
+
+  it('shows document toggle when meeting has documents', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MeetingCard meeting={meetingWithDocs} />);
+    const toggleBtn = screen.getByText(/Näytä asiakirjat/);
+    expect(toggleBtn).toBeInTheDocument();
+
+    await user.click(toggleBtn);
+    expect(await screen.findByText('Esityslista')).toBeInTheDocument();
+  });
+
+  it('does not show document toggle when no documents', () => {
+    renderWithProviders(<MeetingCard meeting={upcomingMeeting} />);
+    expect(screen.queryByText(/Näytä asiakirjat/)).not.toBeInTheDocument();
   });
 });

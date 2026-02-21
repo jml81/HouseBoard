@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import type { Material, MaterialCategory, FileType } from '@/types';
+import type { Material, MaterialCategory } from '@/types';
 import { useCreateMaterial, useUpdateMaterial } from '@/hooks/use-materials';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,13 +61,18 @@ const MATERIAL_CATEGORIES: MaterialCategory[] = [
   'kunnossapito',
   'muut',
 ];
-const FILE_TYPES: FileType[] = ['pdf', 'xlsx', 'docx'];
+
+const VALID_DOCUMENT_TYPES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
+const MAX_DOCUMENT_SIZE = 20 * 1024 * 1024;
 
 interface FormErrors {
   name?: string;
   category?: string;
-  fileType?: string;
-  fileSize?: string;
+  file?: string;
   updatedAt?: string;
   description?: string;
 }
@@ -85,11 +90,29 @@ function MaterialFormBody({ material, onOpenChange }: MaterialFormBodyProps): Re
 
   const [name, setName] = useState(material?.name ?? '');
   const [category, setCategory] = useState<MaterialCategory | ''>(material?.category ?? '');
-  const [fileType, setFileType] = useState<FileType | ''>(material?.fileType ?? '');
-  const [fileSize, setFileSize] = useState(material?.fileSize ?? '');
+  const [file, setFile] = useState<File | null>(null);
   const [updatedAt, setUpdatedAt] = useState(material?.updatedAt ?? '');
   const [description, setDescription] = useState(material?.description ?? '');
   const [formErrors, setFormErrors] = useState<FormErrors>({});
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>): void {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+
+    if (!VALID_DOCUMENT_TYPES.includes(selected.type)) {
+      setFormErrors((prev) => ({ ...prev, file: t('materials.fileInvalidType') }));
+      e.target.value = '';
+      return;
+    }
+    if (selected.size > MAX_DOCUMENT_SIZE) {
+      setFormErrors((prev) => ({ ...prev, file: t('materials.fileTooLarge') }));
+      e.target.value = '';
+      return;
+    }
+
+    setFile(selected);
+    setFormErrors((prev) => ({ ...prev, file: undefined }));
+  }
 
   function validateForm(): FormErrors {
     const errors: FormErrors = {};
@@ -99,11 +122,8 @@ function MaterialFormBody({ material, onOpenChange }: MaterialFormBodyProps): Re
     if (!category) {
       errors.category = t('materials.validationCategoryRequired');
     }
-    if (!fileType) {
-      errors.fileType = t('materials.validationFileTypeRequired');
-    }
-    if (!fileSize.trim()) {
-      errors.fileSize = t('materials.validationFileSizeRequired');
+    if (!isEdit && !file) {
+      errors.file = t('materials.validationFileRequired');
     }
     if (!updatedAt) {
       errors.updatedAt = t('materials.validationDateRequired');
@@ -129,8 +149,6 @@ function MaterialFormBody({ material, onOpenChange }: MaterialFormBodyProps): Re
           id: material.id,
           name: name.trim(),
           category: category as MaterialCategory,
-          fileType: fileType as FileType,
-          fileSize: fileSize.trim(),
           updatedAt,
           description: description.trim(),
         });
@@ -139,10 +157,11 @@ function MaterialFormBody({ material, onOpenChange }: MaterialFormBodyProps): Re
         await createMaterial.mutateAsync({
           name: name.trim(),
           category: category as MaterialCategory,
-          fileType: fileType as FileType,
-          fileSize: fileSize.trim(),
+          fileType: 'pdf',
+          fileSize: '',
           updatedAt,
           description: description.trim(),
+          file: file!,
         });
         toast.success(t('materials.createSuccess'));
       }
@@ -186,38 +205,6 @@ function MaterialFormBody({ material, onOpenChange }: MaterialFormBodyProps): Re
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="material-file-type">{t('materials.formFileType')}</Label>
-            <Select value={fileType} onValueChange={(v) => setFileType(v as FileType)}>
-              <SelectTrigger id="material-file-type">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {FILE_TYPES.map((ft) => (
-                  <SelectItem key={ft} value={ft}>
-                    {ft.toUpperCase()}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {formErrors.fileType && (
-              <p className="text-sm text-destructive">{formErrors.fileType}</p>
-            )}
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="material-file-size">{t('materials.formFileSize')}</Label>
-            <Input
-              id="material-file-size"
-              value={fileSize}
-              onChange={(e) => setFileSize(e.target.value)}
-              placeholder="245 KB"
-            />
-            {formErrors.fileSize && (
-              <p className="text-sm text-destructive">{formErrors.fileSize}</p>
-            )}
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="material-updated-at">{t('materials.formDate')}</Label>
             <Input
               id="material-updated-at"
@@ -230,6 +217,33 @@ function MaterialFormBody({ material, onOpenChange }: MaterialFormBodyProps): Re
             )}
           </div>
         </div>
+        {!isEdit && (
+          <div className="space-y-2">
+            <Label htmlFor="material-file">{t('materials.formFile')}</Label>
+            <Input
+              id="material-file"
+              type="file"
+              accept=".pdf,.docx,.xlsx"
+              onChange={handleFileChange}
+              className="text-sm"
+            />
+            <p className="text-xs text-muted-foreground">{t('materials.formFileHint')}</p>
+            {file && (
+              <p className="text-xs text-muted-foreground">
+                {file.name} ({Math.round(file.size / 1024).toString()} KB)
+              </p>
+            )}
+            {formErrors.file && <p className="text-sm text-destructive">{formErrors.file}</p>}
+          </div>
+        )}
+        {isEdit && material && (
+          <div className="space-y-2">
+            <Label>{t('materials.currentFile')}</Label>
+            <p className="text-sm text-muted-foreground">
+              {material.fileType.toUpperCase()} &middot; {material.fileSize}
+            </p>
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="material-description">{t('materials.formDescription')}</Label>
           <Textarea

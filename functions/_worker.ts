@@ -81,6 +81,7 @@ interface MaterialRow {
   updated_at: string;
   description: string;
   created_by: string | null;
+  file_key: string | null;
 }
 
 interface MeetingRow {
@@ -101,6 +102,7 @@ interface MeetingDocumentRow {
   name: string;
   file_type: string;
   file_size: string;
+  file_key: string | null;
 }
 
 interface BoardMemberRow {
@@ -253,6 +255,7 @@ interface MaterialResponse {
   updatedAt: string;
   description: string;
   createdBy: string | null;
+  fileUrl: string | null;
 }
 
 interface MeetingDocumentResponse {
@@ -260,6 +263,7 @@ interface MeetingDocumentResponse {
   name: string;
   fileType: string;
   fileSize: string;
+  fileUrl: string | null;
 }
 
 interface MeetingResponse {
@@ -398,6 +402,7 @@ function toMaterialResponse(row: MaterialRow): MaterialResponse {
     updatedAt: row.updated_at,
     description: row.description,
     createdBy: row.created_by,
+    fileUrl: row.file_key ? `/api/files/${row.file_key}` : null,
   };
 }
 
@@ -407,6 +412,7 @@ function toMeetingDocumentResponse(row: MeetingDocumentRow): MeetingDocumentResp
     name: row.name,
     fileType: row.file_type,
     fileSize: row.file_size,
+    fileUrl: row.file_key ? `/api/files/${row.file_key}` : null,
   };
 }
 
@@ -1520,58 +1526,90 @@ app.get('/api/materials/:id', async (c) => {
   return c.json(toMaterialResponse(row));
 });
 
-app.post('/api/materials', requireManager(), async (c) => {
-  const body = await c.req.json<Record<string, unknown>>();
+app.post(
+  '/api/materials',
+  requireManager(),
+  bodyLimit({ maxSize: MAX_DOCUMENT_SIZE, onError: (c) => c.json({ error: 'File too large (max 20 MB)' }, 413) }),
+  async (c) => {
+    const contentType = c.req.header('content-type') ?? '';
+    const isFormData = contentType.includes('multipart/form-data');
 
-  const errors: string[] = [];
-  if (!body.name || typeof body.name !== 'string' || body.name.trim() === '') {
-    errors.push('name is required');
-  }
-  if (!body.category || !VALID_MATERIAL_CATEGORIES.includes(body.category as string)) {
-    errors.push('invalid category');
-  }
-  if (!body.fileType || !VALID_FILE_TYPES.includes(body.fileType as string)) {
-    errors.push('invalid fileType');
-  }
-  if (!body.fileSize || typeof body.fileSize !== 'string' || body.fileSize.trim() === '') {
-    errors.push('fileSize is required');
-  }
-  if (!body.updatedAt || typeof body.updatedAt !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.updatedAt)) {
-    errors.push('updatedAt is required (YYYY-MM-DD)');
-  }
-  if (!body.description || typeof body.description !== 'string' || body.description.trim() === '') {
-    errors.push('description is required');
-  }
+    let name: string;
+    let category: string;
+    let fileType: string;
+    let fileSize: string;
+    let updatedAt: string;
+    let description: string;
+    let uploadFile: File | null = null;
 
-  if (errors.length > 0) {
-    return c.json({ error: 'Validation failed', details: errors }, 400);
-  }
+    if (isFormData) {
+      const formData = await c.req.parseBody();
+      name = typeof formData.name === 'string' ? formData.name : '';
+      category = typeof formData.category === 'string' ? formData.category : '';
+      description = typeof formData.description === 'string' ? formData.description : '';
+      updatedAt = typeof formData.updatedAt === 'string' ? formData.updatedAt : new Date().toISOString().slice(0, 10);
 
-  const id = crypto.randomUUID();
-  const user = c.get('user');
+      if (formData.file instanceof File && formData.file.size > 0) {
+        uploadFile = formData.file;
+        const detectedType = DOCUMENT_TYPE_MAP[uploadFile.type];
+        if (!detectedType) {
+          return c.json({ error: 'Invalid file type (allowed: PDF, DOCX, XLSX)' }, 400);
+        }
+        fileType = detectedType;
+        fileSize = formatFileSize(uploadFile.size);
+      } else {
+        fileType = typeof formData.fileType === 'string' ? formData.fileType : '';
+        fileSize = typeof formData.fileSize === 'string' ? formData.fileSize : '';
+      }
+    } else {
+      const body = await c.req.json<Record<string, unknown>>();
+      name = typeof body.name === 'string' ? body.name : '';
+      category = typeof body.category === 'string' ? body.category : '';
+      fileType = typeof body.fileType === 'string' ? body.fileType : '';
+      fileSize = typeof body.fileSize === 'string' ? body.fileSize : '';
+      updatedAt = typeof body.updatedAt === 'string' ? body.updatedAt : '';
+      description = typeof body.description === 'string' ? body.description : '';
+    }
 
-  await c.env.DB.prepare(
-    `INSERT INTO materials (id, name, category, file_type, file_size, updated_at, description, created_by)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-  )
-    .bind(
-      id,
-      (body.name as string).trim(),
-      body.category as string,
-      body.fileType as string,
-      (body.fileSize as string).trim(),
-      body.updatedAt as string,
-      (body.description as string).trim(),
-      user.sub,
+    const errors: string[] = [];
+    if (!name.trim()) errors.push('name is required');
+    if (!VALID_MATERIAL_CATEGORIES.includes(category)) errors.push('invalid category');
+    if (!VALID_FILE_TYPES.includes(fileType)) errors.push('invalid fileType');
+    if (!fileSize.trim()) errors.push('fileSize is required');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(updatedAt)) errors.push('updatedAt is required (YYYY-MM-DD)');
+    if (!description.trim()) errors.push('description is required');
+
+    if (errors.length > 0) {
+      return c.json({ error: 'Validation failed', details: errors }, 400);
+    }
+
+    const id = crypto.randomUUID();
+    const user = c.get('user');
+
+    let fileKey: string | null = null;
+    if (uploadFile) {
+      const ext = getExtensionFromContentType(uploadFile.type);
+      fileKey = `materials/${crypto.randomUUID()}.${ext}`;
+      await c.env.BUCKET.put(fileKey, uploadFile.stream(), {
+        httpMetadata: { contentType: uploadFile.type },
+        customMetadata: { originalName: uploadFile.name },
+      });
+    }
+
+    await c.env.DB.prepare(
+      `INSERT INTO materials (id, name, category, file_type, file_size, updated_at, description, created_by, file_key)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-    .run();
+      .bind(id, name.trim(), category, fileType, fileSize.trim(), updatedAt, description.trim(), user.sub, fileKey)
+      .run();
 
-  const row = await c.env.DB.prepare('SELECT * FROM materials WHERE id = ?')
-    .bind(id)
-    .first<MaterialRow>();
+    const row = await c.env.DB.prepare('SELECT * FROM materials WHERE id = ?')
+      .bind(id)
+      .first<MaterialRow>();
 
-  return c.json(toMaterialResponse(row!), 201);
-});
+    return c.json(toMaterialResponse(row!), 201);
+  },
+);
 
 app.patch('/api/materials/:id', requireManager(), async (c) => {
   const id = c.req.param('id');
@@ -1660,6 +1698,11 @@ app.delete('/api/materials/:id', requireManager(), async (c) => {
 
   if (!existing) {
     return c.json({ error: 'Not found' }, 404);
+  }
+
+  // Delete R2 file if exists
+  if (existing.file_key) {
+    await c.env.BUCKET.delete(existing.file_key);
   }
 
   await c.env.DB.prepare('DELETE FROM materials WHERE id = ?').bind(id).run();
@@ -1951,8 +1994,109 @@ app.delete('/api/meetings/:id', requireManager(), async (c) => {
     return c.json({ error: 'Not found' }, 404);
   }
 
+  // Delete R2 files for meeting documents
+  const { results: docsToDelete } = await c.env.DB.prepare(
+    'SELECT file_key FROM meeting_documents WHERE meeting_id = ?',
+  ).bind(id).all<{ file_key: string | null }>();
+  for (const doc of docsToDelete) {
+    if (doc.file_key) await c.env.BUCKET.delete(doc.file_key);
+  }
+
   await c.env.DB.prepare('DELETE FROM meeting_documents WHERE meeting_id = ?').bind(id).run();
   await c.env.DB.prepare('DELETE FROM meetings WHERE id = ?').bind(id).run();
+
+  return c.json({ success: true });
+});
+
+// --- Meeting document upload/delete ---
+
+const VALID_DOCUMENT_TYPES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
+const MAX_DOCUMENT_SIZE = 20 * 1024 * 1024; // 20 MB
+const DOCUMENT_TYPE_MAP: Record<string, string> = {
+  'application/pdf': 'pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+};
+
+app.post(
+  '/api/meetings/:meetingId/documents',
+  requireManager(),
+  bodyLimit({ maxSize: MAX_DOCUMENT_SIZE, onError: (c) => c.json({ error: 'File too large (max 20 MB)' }, 413) }),
+  async (c) => {
+    const meetingId = c.req.param('meetingId');
+
+    const meeting = await c.env.DB.prepare('SELECT id FROM meetings WHERE id = ?')
+      .bind(meetingId)
+      .first<{ id: string }>();
+    if (!meeting) {
+      return c.json({ error: 'Meeting not found' }, 404);
+    }
+
+    const formData = await c.req.parseBody();
+    const file = formData.file;
+    if (!(file instanceof File) || file.size === 0) {
+      return c.json({ error: 'file is required' }, 400);
+    }
+
+    if (!VALID_DOCUMENT_TYPES.includes(file.type)) {
+      return c.json({ error: 'Invalid file type (allowed: PDF, DOCX, XLSX)' }, 400);
+    }
+    if (file.size > MAX_DOCUMENT_SIZE) {
+      return c.json({ error: 'File too large (max 20 MB)' }, 413);
+    }
+
+    const fileType = DOCUMENT_TYPE_MAP[file.type] ?? 'pdf';
+    const ext = getExtensionFromContentType(file.type);
+    const fileKey = `meetings/${meetingId}/${crypto.randomUUID()}.${ext}`;
+
+    await c.env.BUCKET.put(fileKey, file.stream(), {
+      httpMetadata: { contentType: file.type },
+      customMetadata: { originalName: file.name },
+    });
+
+    const docId = crypto.randomUUID();
+    const docName = typeof formData.name === 'string' && formData.name.trim()
+      ? formData.name.trim()
+      : file.name;
+
+    await c.env.DB.prepare(
+      `INSERT INTO meeting_documents (id, meeting_id, name, file_type, file_size, file_key)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    )
+      .bind(docId, meetingId, docName, fileType, formatFileSize(file.size), fileKey)
+      .run();
+
+    const row = await c.env.DB.prepare('SELECT * FROM meeting_documents WHERE id = ?')
+      .bind(docId)
+      .first<MeetingDocumentRow>();
+
+    return c.json(toMeetingDocumentResponse(row!), 201);
+  },
+);
+
+app.delete('/api/meetings/:meetingId/documents/:docId', requireManager(), async (c) => {
+  const meetingId = c.req.param('meetingId');
+  const docId = c.req.param('docId');
+
+  const doc = await c.env.DB.prepare(
+    'SELECT * FROM meeting_documents WHERE id = ? AND meeting_id = ?',
+  )
+    .bind(docId, meetingId)
+    .first<MeetingDocumentRow>();
+
+  if (!doc) {
+    return c.json({ error: 'Document not found' }, 404);
+  }
+
+  if (doc.file_key) {
+    await c.env.BUCKET.delete(doc.file_key);
+  }
+
+  await c.env.DB.prepare('DELETE FROM meeting_documents WHERE id = ?').bind(docId).run();
 
   return c.json({ success: true });
 });

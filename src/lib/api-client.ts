@@ -12,6 +12,7 @@ import type {
   MaterialCategory,
   FileType,
   Meeting,
+  MeetingDocument,
   MeetingType,
   MeetingStatus,
   BoardMember,
@@ -188,6 +189,7 @@ export interface CreateMaterialInput {
   fileSize: string;
   updatedAt: string;
   description: string;
+  file?: File;
 }
 
 export interface UpdateMaterialInput {
@@ -410,9 +412,19 @@ export const apiClient = {
       return fetchJson<Material>(`/api/materials/${encodeURIComponent(id)}`);
     },
     create(input: CreateMaterialInput): Promise<Material> {
+      if (input.file) {
+        const formData = new FormData();
+        formData.append('name', input.name);
+        formData.append('category', input.category);
+        formData.append('description', input.description);
+        formData.append('updatedAt', input.updatedAt);
+        formData.append('file', input.file);
+        return mutateFormData<Material>('/api/materials', formData);
+      }
+      const { file: _file, ...jsonInput } = input;
       return mutateJson<Material>('/api/materials', {
         method: 'POST',
-        body: input,
+        body: jsonInput,
       });
     },
     update(input: UpdateMaterialInput): Promise<Material> {
@@ -454,6 +466,24 @@ export const apiClient = {
       return mutateJson<{ success: boolean }>(`/api/meetings/${encodeURIComponent(id)}`, {
         method: 'DELETE',
       });
+    },
+  },
+
+  meetingDocuments: {
+    upload(meetingId: string, file: File, name?: string): Promise<MeetingDocument> {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (name) formData.append('name', name);
+      return mutateFormData<MeetingDocument>(
+        `/api/meetings/${encodeURIComponent(meetingId)}/documents`,
+        formData,
+      );
+    },
+    delete(meetingId: string, docId: string): Promise<{ success: boolean }> {
+      return mutateJson<{ success: boolean }>(
+        `/api/meetings/${encodeURIComponent(meetingId)}/documents/${encodeURIComponent(docId)}`,
+        { method: 'DELETE' },
+      );
     },
   },
 
