@@ -2779,9 +2779,10 @@ app.post('/api/profile/change-password', async (c) => {
   return c.json({ success: true });
 });
 
-// Static assets fallback
+// Static assets fallback — clone response so secureHeaders can modify headers
 app.all('*', async (c) => {
-  return c.env.ASSETS.fetch(c.req.raw);
+  const response = await c.env.ASSETS.fetch(c.req.raw);
+  return new Response(response.body, response);
 });
 
 export default app;
