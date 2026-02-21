@@ -124,6 +124,9 @@ jobs:
 
       - name: Smoke tests
         if: github.event_name == 'push'
+        env:
+          SMOKE_EMAIL: testaaja@talo.fi
+          SMOKE_PASSWORD: ${{ secrets.E2E_RESIDENT_PASSWORD }}
         run: |
           echo "Waiting 10s for edge propagation..."
           sleep 10
@@ -136,7 +139,7 @@ jobs:
           echo "Logging in to get JWT token..."
           LOGIN=$(curl -sf -X POST https://houseboard.pages.dev/api/auth/login \
             -H "Content-Type: application/json" \
-            -d '{"email":"asukas@talo.fi","password":"Asukas2026!"}')
+            -d "{\"email\":\"${SMOKE_EMAIL}\",\"password\":\"${SMOKE_PASSWORD}\"}")
           TOKEN=$(echo "$LOGIN" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
           [ -n "$TOKEN" ] || { echo "FAIL: login did not return token"; echo "$LOGIN"; exit 1; }
           echo "OK: got JWT token"
