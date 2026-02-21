@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Meeting, MeetingStatus } from '@/types';
 import { apiClient } from '@/lib/api-client';
+import type { CreateMeetingInput, UpdateMeetingInput } from '@/lib/api-client';
 
 export const meetingKeys = {
   all: ['meetings'] as const,
@@ -30,5 +31,41 @@ export function useMeeting(id: string): {
   return useQuery({
     queryKey: meetingKeys.detail(id),
     queryFn: () => apiClient.meetings.get(id),
+  });
+}
+
+export function useCreateMeeting(): ReturnType<
+  typeof useMutation<Meeting, Error, CreateMeetingInput>
+> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateMeetingInput) => apiClient.meetings.create(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: meetingKeys.all });
+    },
+  });
+}
+
+export function useUpdateMeeting(): ReturnType<
+  typeof useMutation<Meeting, Error, UpdateMeetingInput>
+> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateMeetingInput) => apiClient.meetings.update(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: meetingKeys.all });
+    },
+  });
+}
+
+export function useDeleteMeeting(): ReturnType<
+  typeof useMutation<{ success: boolean }, Error, string>
+> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiClient.meetings.delete(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: meetingKeys.all });
+    },
   });
 }
