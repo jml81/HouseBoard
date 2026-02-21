@@ -77,6 +77,20 @@ void testI18n.use(initReactI18next).init({
           managerToggle: 'Isännöitsijätila',
           managerModeOn: 'Isännöitsijätila päällä',
           managerModeOff: 'Isännöitsijätila pois',
+          forgotPassword: 'Unohditko salasanasi?',
+          forgotPasswordTitle: 'Salasanan palautus',
+          forgotPasswordDescription:
+            'Syötä sähköpostiosoitteesi niin lähetämme sinulle salasanan palautuslinkin.',
+          forgotPasswordSuccess:
+            'Jos sähköpostiosoite löytyy, palautuslinkki on lähetetty. Tarkista sähköpostisi.',
+          forgotPasswordError: 'Jokin meni pieleen. Yritä myöhemmin uudelleen.',
+          sendResetLink: 'Lähetä palautuslinkki',
+          backToLogin: 'Takaisin kirjautumiseen',
+          resetPasswordTitle: 'Aseta uusi salasana',
+          resetPasswordSuccess:
+            'Salasana vaihdettu onnistuneesti! Voit nyt kirjautua uudella salasanallasi.',
+          resetPasswordError: 'Palautuslinkki on virheellinen tai vanhentunut.',
+          resetPasswordSubmit: 'Vaihda salasana',
         },
         dashboard: {
           welcome: 'Tervetuloa!',

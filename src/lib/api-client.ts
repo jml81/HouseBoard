@@ -277,6 +277,18 @@ export const apiClient = {
         body: credentials,
       });
     },
+    forgotPassword(email: string): Promise<{ message: string }> {
+      return mutateJson<{ message: string }>('/api/auth/forgot-password', {
+        method: 'POST',
+        body: { email },
+      });
+    },
+    resetPassword(token: string, newPassword: string): Promise<{ success: boolean }> {
+      return mutateJson<{ success: boolean }>('/api/auth/reset-password', {
+        method: 'POST',
+        body: { token, newPassword },
+      });
+    },
   },
 
   announcements: {

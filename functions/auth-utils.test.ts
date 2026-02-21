@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
-import { hashPassword, verifyPassword, signJwt, verifyJwt } from './auth-utils.js';
+import { hashPassword, verifyPassword, signJwt, verifyJwt, generateResetToken, hashToken } from './auth-utils.js';
 
 describe('hashPassword + verifyPassword', () => {
   it('round-trips correctly', async () => {
@@ -37,6 +37,32 @@ describe('hashPassword + verifyPassword', () => {
   it('rejects malformed stored hash', async () => {
     const valid = await verifyPassword('test', 'not-a-valid-hash');
     expect(valid).toBe(false);
+  });
+});
+
+describe('generateResetToken', () => {
+  it('generates a 64-character hex string', async () => {
+    const token = await generateResetToken();
+    expect(token).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('generates unique tokens', async () => {
+    const a = await generateResetToken();
+    const b = await generateResetToken();
+    expect(a).not.toBe(b);
+  });
+});
+
+describe('hashToken', () => {
+  it('produces a 64-character hex SHA-256 hash', async () => {
+    const hash = await hashToken('abc123');
+    expect(hash).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('produces consistent hashes for same input', async () => {
+    const a = await hashToken('same-token');
+    const b = await hashToken('same-token');
+    expect(a).toBe(b);
   });
 });
 

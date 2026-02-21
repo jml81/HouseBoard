@@ -3,15 +3,17 @@ import type { Context, Next } from 'hono';
 import { secureHeaders } from 'hono/secure-headers';
 import { cors } from 'hono/cors';
 import { bodyLimit } from 'hono/body-limit';
-import { hashPassword, verifyPassword, signJwt, verifyJwt } from './auth-utils.js';
+import { hashPassword, verifyPassword, signJwt, verifyJwt, generateResetToken, hashToken } from './auth-utils.js';
 import type { JwtPayload } from './auth-utils.js';
 import { createRateLimiter } from './rate-limiter.js';
 import { isValidEmail } from './validation-utils.js';
+import { sendEmail, buildResetEmailHtml } from './email-utils.js';
 
 interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
   DB: D1Database;
   JWT_SECRET: string;
+  RESEND_API_KEY: string;
 }
 
 type Variables = {
@@ -506,6 +508,7 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 // --- Rate limiter ---
 
 const loginRateLimiter = createRateLimiter({ maxRequests: 5, windowMs: 60_000 });
+const forgotPasswordRateLimiter = createRateLimiter({ maxRequests: 3, windowMs: 300_000 });
 
 // --- Security middleware ---
 
@@ -635,6 +638,112 @@ app.get('/api/auth/me', async (c) => {
   }
 
   return c.json(toUserResponse(user));
+});
+
+// --- Forgot password ---
+
+app.post('/api/auth/forgot-password', async (c) => {
+  const clientIp = c.req.header('cf-connecting-ip') ?? c.req.header('x-forwarded-for') ?? 'unknown';
+
+  if (!forgotPasswordRateLimiter.check(clientIp)) {
+    console.log(JSON.stringify({ event: 'forgot_password_rate_limited', ip: clientIp }));
+    return c.json({ message: 'If the email exists, a reset link has been sent.' });
+  }
+
+  const body = await c.req.json<Record<string, unknown>>();
+  if (!body.email || typeof body.email !== 'string') {
+    return c.json({ message: 'If the email exists, a reset link has been sent.' });
+  }
+
+  if (!isValidEmail(body.email)) {
+    return c.json({ message: 'If the email exists, a reset link has been sent.' });
+  }
+
+  const user = await c.env.DB.prepare('SELECT id, name, email FROM users WHERE email = ? AND status = ?')
+    .bind(body.email, 'active')
+    .first<{ id: string; name: string; email: string }>();
+
+  if (user) {
+    const token = await generateResetToken();
+    const tokenHash = await hashToken(token);
+    const expiresAt = new Date(Date.now() + 3600_000).toISOString();
+
+    await c.env.DB.prepare(
+      'INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)',
+    )
+      .bind(crypto.randomUUID(), user.id, tokenHash, expiresAt)
+      .run();
+
+    const origin = c.req.header('origin') ?? 'https://houseboard.antesto.fi';
+    const resetUrl = `${origin}/salasanan-palautus/${token}`;
+    const html = buildResetEmailHtml(resetUrl, user.name);
+
+    const sent = await sendEmail({
+      to: user.email,
+      subject: 'HouseBoard — Salasanan palautus',
+      html,
+      apiKey: c.env.RESEND_API_KEY,
+    });
+
+    console.log(JSON.stringify({ event: 'forgot_password', ip: clientIp, userId: user.id, emailSent: sent }));
+  } else {
+    console.log(JSON.stringify({ event: 'forgot_password', ip: clientIp, userFound: false }));
+  }
+
+  return c.json({ message: 'If the email exists, a reset link has been sent.' });
+});
+
+// --- Reset password ---
+
+app.post('/api/auth/reset-password', async (c) => {
+  const clientIp = c.req.header('cf-connecting-ip') ?? c.req.header('x-forwarded-for') ?? 'unknown';
+  const body = await c.req.json<Record<string, unknown>>();
+
+  if (!body.token || typeof body.token !== 'string' || !body.newPassword || typeof body.newPassword !== 'string') {
+    return c.json({ error: 'Token and new password are required' }, 400);
+  }
+
+  if (body.newPassword.length < 8) {
+    return c.json({ error: 'Password must be at least 8 characters' }, 400);
+  }
+
+  const tokenHash = await hashToken(body.token);
+  const row = await c.env.DB.prepare(
+    'SELECT id, user_id, expires_at, used_at FROM password_reset_tokens WHERE token_hash = ?',
+  )
+    .bind(tokenHash)
+    .first<{ id: string; user_id: string; expires_at: string; used_at: string | null }>();
+
+  if (!row) {
+    console.log(JSON.stringify({ event: 'reset_password_failed', reason: 'token_not_found', ip: clientIp }));
+    return c.json({ error: 'Invalid or expired reset link' }, 400);
+  }
+
+  if (row.used_at) {
+    console.log(JSON.stringify({ event: 'reset_password_failed', reason: 'token_used', ip: clientIp, userId: row.user_id }));
+    return c.json({ error: 'Invalid or expired reset link' }, 400);
+  }
+
+  if (new Date(row.expires_at) <= new Date()) {
+    console.log(JSON.stringify({ event: 'reset_password_failed', reason: 'token_expired', ip: clientIp, userId: row.user_id }));
+    return c.json({ error: 'Invalid or expired reset link' }, 400);
+  }
+
+  const newHash = await hashPassword(body.newPassword);
+  await c.env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+    .bind(newHash, row.user_id)
+    .run();
+
+  // Mark token as used and delete other tokens for this user
+  await c.env.DB.prepare('UPDATE password_reset_tokens SET used_at = datetime(?) WHERE id = ?')
+    .bind(new Date().toISOString(), row.id)
+    .run();
+  await c.env.DB.prepare('DELETE FROM password_reset_tokens WHERE user_id = ? AND id != ?')
+    .bind(row.user_id, row.id)
+    .run();
+
+  console.log(JSON.stringify({ event: 'reset_password_success', ip: clientIp, userId: row.user_id }));
+  return c.json({ success: true });
 });
 
 // --- JWT authentication middleware (all routes below) ---
