@@ -74,58 +74,105 @@ export function UsersPage(): React.JSX.Element {
         {error && <p className="text-destructive">{t('common.error')}</p>}
         {users?.length === 0 && <p className="text-muted-foreground">{t('users.noUsers')}</p>}
         {users && users.length > 0 && (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('users.formName')}</TableHead>
-                <TableHead>{t('users.formEmail')}</TableHead>
-                <TableHead>{t('users.formApartment')}</TableHead>
-                <TableHead>{t('users.formRole')}</TableHead>
-                <TableHead>{t('users.formStatus')}</TableHead>
-                <TableHead className="w-24" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <>
+            {/* Mobile: card layout */}
+            <div className="space-y-2 md:hidden">
               {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.apartment}</TableCell>
-                  <TableCell>
-                    <Badge variant={user.role === 'manager' ? 'default' : 'secondary'}>
-                      {t(`userRoles.${user.role}`)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={user.status === 'active' ? 'outline' : 'destructive'}>
-                      {t(`userStatuses.${user.status}`)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setEditUser(user)}
-                        aria-label={t('common.edit')}
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeleteTarget(user)}
-                        disabled={user.id === currentUser?.id}
-                        aria-label={t('users.deleteUser')}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
+                <div key={user.id} className="flex items-center gap-3 rounded-lg border p-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{user.name}</p>
+                    <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                      <span className="text-xs text-muted-foreground">{user.apartment}</span>
+                      <Badge variant={user.role === 'manager' ? 'default' : 'secondary'}>
+                        {t(`userRoles.${user.role}`)}
+                      </Badge>
+                      <Badge variant={user.status === 'active' ? 'outline' : 'destructive'}>
+                        {t(`userStatuses.${user.status}`)}
+                      </Badge>
                     </div>
-                  </TableCell>
-                </TableRow>
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8"
+                      onClick={() => setEditUser(user)}
+                      aria-label={t('common.edit')}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8"
+                      onClick={() => setDeleteTarget(user)}
+                      disabled={user.id === currentUser?.id}
+                      aria-label={t('users.deleteUser')}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </div>
               ))}
-            </TableBody>
-          </Table>
+            </div>
+
+            {/* Desktop: table layout */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('users.formName')}</TableHead>
+                    <TableHead>{t('users.formEmail')}</TableHead>
+                    <TableHead>{t('users.formApartment')}</TableHead>
+                    <TableHead>{t('users.formRole')}</TableHead>
+                    <TableHead>{t('users.formStatus')}</TableHead>
+                    <TableHead className="w-24" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">{user.name}</TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>{user.apartment}</TableCell>
+                      <TableCell>
+                        <Badge variant={user.role === 'manager' ? 'default' : 'secondary'}>
+                          {t(`userRoles.${user.role}`)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={user.status === 'active' ? 'outline' : 'destructive'}>
+                          {t(`userStatuses.${user.status}`)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setEditUser(user)}
+                            aria-label={t('common.edit')}
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteTarget(user)}
+                            disabled={user.id === currentUser?.id}
+                            aria-label={t('users.deleteUser')}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </div>
 

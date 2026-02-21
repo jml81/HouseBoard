@@ -205,7 +205,7 @@ export function MarketplaceItemDetail({ item }: MarketplaceItemDetailProps): Rea
           </div>
         )}
 
-        {!canManage && (
+        {!isOwner && (
           <Button className="gap-2 bg-hb-accent hover:bg-hb-accent/90">
             <MessageCircle className="size-4" />
             {t('marketplace.contact')}

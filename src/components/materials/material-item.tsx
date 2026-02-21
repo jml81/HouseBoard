@@ -48,42 +48,46 @@ export function MaterialItem({ material }: MaterialItemProps): React.JSX.Element
       <div className="flex items-center gap-4 rounded-lg border p-4">
         <FileTypeIcon fileType={material.fileType} className="size-8 shrink-0" />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="truncate font-medium">{material.name}</p>
+          <p className="truncate font-medium">{material.name}</p>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
             <Badge variant="outline" className="text-xs">
               {t(`categories.${material.category}`)}
             </Badge>
+            <span className="text-xs text-muted-foreground">
+              {material.fileType.toUpperCase()} &middot; {material.fileSize}
+            </span>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {material.fileType.toUpperCase()} &middot; {material.fileSize} &middot;{' '}
+          <p className="hidden text-sm text-muted-foreground sm:block">
             {t('materials.updated')}: {formatDate(material.updatedAt)}
           </p>
         </div>
-        {isManager && (
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8"
-              onClick={() => setEditOpen(true)}
-              aria-label={t('materials.editMaterial')}
-            >
-              <Pencil className="size-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8 text-destructive"
-              onClick={() => setDeleteOpen(true)}
-              aria-label={t('materials.deleteMaterial')}
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          </div>
-        )}
-        <Button variant="ghost" size="icon" title={t('materials.download')}>
-          <Download className="size-5" />
-        </Button>
+        <div className="flex shrink-0 gap-1">
+          {isManager && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8"
+                onClick={() => setEditOpen(true)}
+                aria-label={t('materials.editMaterial')}
+              >
+                <Pencil className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 text-destructive"
+                onClick={() => setDeleteOpen(true)}
+                aria-label={t('materials.deleteMaterial')}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </>
+          )}
+          <Button variant="ghost" size="icon" className="size-8" title={t('materials.download')}>
+            <Download className="size-5" />
+          </Button>
+        </div>
       </div>
 
       <MaterialFormDialog open={editOpen} onOpenChange={setEditOpen} material={material} />
