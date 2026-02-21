@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth-store';
+import { useUiStore } from '@/stores/ui-store';
 import {
   Sheet,
   SheetContent,
@@ -56,7 +56,8 @@ export function MobileNav(): React.JSX.Element {
   const { t } = useTranslation();
   const location = useLocation();
   const isManager = useAuthStore((s) => s.isManager);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const sheetOpen = useUiStore((s) => s.sidebarOpen);
+  const setSheetOpen = useUiStore((s) => s.setSidebarOpen);
 
   return (
     <>

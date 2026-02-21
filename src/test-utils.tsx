@@ -382,6 +382,7 @@ void testI18n.use(initReactI18next).init({
             deleteConfirm: 'Haluatko varmasti poistaa tämän huoneiston vastiketiedot?',
             validationApartmentRequired: 'Huoneisto on pakollinen',
             validationDateRequired: 'Viimeisin maksupäivä on pakollinen',
+            noAvailableApartments: 'Kaikilla huoneistoilla on jo vastiketiedot',
           },
         },
         contacts: {
