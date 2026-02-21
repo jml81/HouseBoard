@@ -128,19 +128,24 @@ jobs:
           SMOKE_EMAIL: testaaja@talo.fi
           SMOKE_PASSWORD: ${{ secrets.E2E_RESIDENT_PASSWORD }}
         run: |
-          echo "Waiting 10s for edge propagation..."
-          sleep 10
-
-          echo "Testing /api/health (no auth required)..."
-          HEALTH=$(curl -sf https://houseboard.pages.dev/api/health)
-          echo "$HEALTH" | grep -q '"status":"ok"' || { echo "FAIL: /api/health"; exit 1; }
-          echo "OK: $HEALTH"
+          echo "Waiting for edge propagation..."
+          for i in 1 2 3 4 5; do
+            HEALTH=$(curl -s https://houseboard.pages.dev/api/health)
+            if echo "$HEALTH" | grep -q '"status":"ok"'; then
+              echo "OK: /api/health responded on attempt $i"
+              break
+            fi
+            echo "Attempt $i: health not ready, waiting 10s..."
+            sleep 10
+          done
+          echo "$HEALTH" | grep -q '"status":"ok"' || { echo "FAIL: /api/health after 5 attempts"; exit 1; }
 
           echo "Logging in to get JWT token..."
-          LOGIN=$(curl -sf -X POST https://houseboard.pages.dev/api/auth/login \
+          LOGIN_BODY=$(jq -n --arg e "$SMOKE_EMAIL" --arg p "$SMOKE_PASSWORD" '{email:$e,password:$p}')
+          LOGIN=$(curl -s -X POST https://houseboard.pages.dev/api/auth/login \
             -H "Content-Type: application/json" \
-            -d "{\"email\":\"${SMOKE_EMAIL}\",\"password\":\"${SMOKE_PASSWORD}\"}")
-          TOKEN=$(echo "$LOGIN" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+            -d "$LOGIN_BODY")
+          TOKEN=$(echo "$LOGIN" | jq -r '.token // empty')
           [ -n "$TOKEN" ] || { echo "FAIL: login did not return token"; echo "$LOGIN"; exit 1; }
           echo "OK: got JWT token"
 

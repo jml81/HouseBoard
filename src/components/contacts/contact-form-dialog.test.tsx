@@ -76,16 +76,18 @@ describe('ContactFormDialog', () => {
 
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            id: 'new-1',
-            name: 'Uusi kontakti',
-            role: 'muu',
-            phone: '040 111 2222',
-            email: 'uusi@test.fi',
-          }),
-          { status: 200, headers: { 'Content-Type': 'application/json' } },
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              id: 'new-1',
+              name: 'Uusi kontakti',
+              role: 'muu',
+              phone: '040 111 2222',
+              email: 'uusi@test.fi',
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          ),
         ),
       ),
     );
@@ -119,11 +121,13 @@ describe('ContactFormDialog', () => {
 
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ error: 'Server error' }), {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' },
-        }),
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          new Response(JSON.stringify({ error: 'Server error' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+        ),
       ),
     );
 
