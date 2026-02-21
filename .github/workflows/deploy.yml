@@ -130,6 +130,7 @@ jobs:
           echo "$HEADERS" | grep -qi "x-frame-options: DENY" || { echo "FAIL: missing X-Frame-Options"; echo "$HEADERS"; exit 1; }
           echo "$HEADERS" | grep -qi "x-content-type-options: nosniff" || { echo "FAIL: missing X-Content-Type-Options"; echo "$HEADERS"; exit 1; }
           echo "$HEADERS" | grep -qi "strict-transport-security" || { echo "FAIL: missing HSTS"; echo "$HEADERS"; exit 1; }
+          echo "$HEADERS" | grep -qi "content-security-policy-report-only" || { echo "FAIL: missing CSP-Report-Only"; echo "$HEADERS"; exit 1; }
           echo "OK: security headers present"
 
           echo "Testing rate limit does not trigger on single attempt..."
