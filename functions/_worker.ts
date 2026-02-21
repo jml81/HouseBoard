@@ -790,7 +790,7 @@ app.post('/api/auth/reset-password', async (c) => {
 app.use('/api/*', async (c: Context<{ Bindings: Env; Variables: Variables }>, next: Next) => {
   // Skip auth endpoints and health check
   const path = new URL(c.req.url).pathname;
-  if (path === '/api/health' || path.startsWith('/api/auth/')) {
+  if (path === '/api/health' || path.startsWith('/api/auth/') || path.startsWith('/api/files/')) {
     return next();
   }
 
