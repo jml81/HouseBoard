@@ -576,15 +576,23 @@ app.use(
   }),
 );
 
-app.use(
-  '/api/*',
-  bodyLimit({
+app.use('/api/*', async (c, next) => {
+  // Skip global body limit for routes that define their own (file uploads)
+  const path = c.req.path;
+  const method = c.req.method;
+  if (
+    method === 'POST' &&
+    (path === '/api/marketplace-items' ||
+      path.match(/^\/api\/meetings\/[^/]+\/documents$/) ||
+      path === '/api/materials')
+  ) {
+    return next();
+  }
+  return bodyLimit({
     maxSize: 100 * 1024,
-    onError: (c) => {
-      return c.json({ error: 'Request body too large' }, 413);
-    },
-  }),
-);
+    onError: () => c.json({ error: 'Request body too large' }, 413),
+  })(c, next);
+});
 
 // Health check (no auth required)
 app.get('/api/health', (c) => {
