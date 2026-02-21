@@ -12,7 +12,7 @@ interface UiState {
 export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
-      sidebarOpen: true,
+      sidebarOpen: false,
       locale: 'fi',
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),

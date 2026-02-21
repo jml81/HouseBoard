@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { Bell, Globe, LogOut, Menu, Shield, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -52,7 +52,9 @@ export function Header(): React.JSX.Element {
         <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Menu">
           <Menu className="size-5" />
         </Button>
-        <Logo size="sm" />
+        <Link to="/">
+          <Logo size="sm" />
+        </Link>
       </div>
 
       {/* Desktop: spacer */}

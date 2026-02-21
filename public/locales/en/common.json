@@ -360,7 +360,8 @@
       "duplicateError": "Apartment already has payment info",
       "deleteConfirm": "Are you sure you want to delete this apartment's payment info?",
       "validationApartmentRequired": "Apartment is required",
-      "validationDateRequired": "Last payment date is required"
+      "validationDateRequired": "Last payment date is required",
+      "noAvailableApartments": "All apartments already have payment info"
     }
   },
   "contacts": {

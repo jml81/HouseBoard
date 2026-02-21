@@ -108,6 +108,7 @@ function PaymentFormBody({
   const monthlyTotal = hoitovastike + rahoitusvastike + vesimaksu;
 
   const availableApartments = apartments?.filter((a) => !existingPaymentIds?.has(a.id));
+  const noApartmentsAvailable = !isEdit && availableApartments?.length === 0;
 
   function validateForm(): FormErrors {
     const errors: FormErrors = {};
@@ -177,18 +178,24 @@ function PaymentFormBody({
         {!isEdit && (
           <div className="space-y-2">
             <Label>{t('apartments.payments.formApartment')}</Label>
-            <Select value={apartmentId} onValueChange={setApartmentId}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {availableApartments?.map((a) => (
-                  <SelectItem key={a.id} value={a.id}>
-                    {a.number} — {a.resident}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {noApartmentsAvailable ? (
+              <p className="text-sm text-muted-foreground">
+                {t('apartments.payments.noAvailableApartments')}
+              </p>
+            ) : (
+              <Select value={apartmentId} onValueChange={setApartmentId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent position="popper" sideOffset={4}>
+                  {availableApartments?.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.number} — {a.resident}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             {formErrors.apartmentId && (
               <p className="text-sm text-destructive">{formErrors.apartmentId}</p>
             )}
@@ -286,7 +293,7 @@ function PaymentFormBody({
         <Button
           type="submit"
           className="bg-hbplus-accent hover:bg-hbplus-accent/90"
-          disabled={isPending}
+          disabled={isPending || noApartmentsAvailable}
         >
           {isEdit ? t('apartments.payments.update') : t('apartments.payments.submit')}
         </Button>
