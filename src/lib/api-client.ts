@@ -10,6 +10,7 @@ import type {
   LoginCredentials,
   Material,
   MaterialCategory,
+  FileType,
   Meeting,
   MeetingStatus,
   BoardMember,
@@ -164,6 +165,25 @@ export interface UpdateEventInput {
   status?: EventStatus;
 }
 
+export interface CreateMaterialInput {
+  name: string;
+  category: MaterialCategory;
+  fileType: FileType;
+  fileSize: string;
+  updatedAt: string;
+  description: string;
+}
+
+export interface UpdateMaterialInput {
+  id: string;
+  name?: string;
+  category?: MaterialCategory;
+  fileType?: FileType;
+  fileSize?: string;
+  updatedAt?: string;
+  description?: string;
+}
+
 export interface CreateApartmentPaymentInput {
   apartmentId: string;
   paymentStatus: PaymentStatus;
@@ -297,6 +317,24 @@ export const apiClient = {
     },
     get(id: string): Promise<Material> {
       return fetchJson<Material>(`/api/materials/${encodeURIComponent(id)}`);
+    },
+    create(input: CreateMaterialInput): Promise<Material> {
+      return mutateJson<Material>('/api/materials', {
+        method: 'POST',
+        body: input,
+      });
+    },
+    update(input: UpdateMaterialInput): Promise<Material> {
+      const { id, ...data } = input;
+      return mutateJson<Material>(`/api/materials/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: data,
+      });
+    },
+    delete(id: string): Promise<{ success: boolean }> {
+      return mutateJson<{ success: boolean }>(`/api/materials/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
     },
   },
 

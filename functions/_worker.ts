@@ -77,6 +77,7 @@ interface MaterialRow {
   file_size: string;
   updated_at: string;
   description: string;
+  created_by: string | null;
 }
 
 interface MeetingRow {
@@ -247,6 +248,7 @@ interface MaterialResponse {
   fileSize: string;
   updatedAt: string;
   description: string;
+  createdBy: string | null;
 }
 
 interface MeetingDocumentResponse {
@@ -390,6 +392,7 @@ function toMaterialResponse(row: MaterialRow): MaterialResponse {
     fileSize: row.file_size,
     updatedAt: row.updated_at,
     description: row.description,
+    createdBy: row.created_by,
   };
 }
 
@@ -477,6 +480,7 @@ const VALID_ANNOUNCEMENT_CATEGORIES = ['yleinen', 'huolto', 'remontti', 'vesi-sa
 const VALID_BOOKING_CATEGORIES = ['sauna', 'pesutupa', 'kerhohuone', 'talkoot'];
 const VALID_EVENT_STATUSES = ['upcoming', 'past'];
 const VALID_MATERIAL_CATEGORIES = ['saannot', 'kokoukset', 'talous', 'kunnossapito', 'muut'];
+const VALID_FILE_TYPES = ['pdf', 'xlsx', 'docx'];
 const VALID_MEETING_STATUSES = ['upcoming', 'completed'];
 const VALID_CONTACT_ROLES = ['isannoitsija', 'huolto', 'hallitus', 'siivous', 'muu'];
 const VALID_MARKETPLACE_CATEGORIES = [
@@ -1346,6 +1350,153 @@ app.get('/api/materials/:id', async (c) => {
   return c.json(toMaterialResponse(row));
 });
 
+app.post('/api/materials', requireManager(), async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const errors: string[] = [];
+  if (!body.name || typeof body.name !== 'string' || body.name.trim() === '') {
+    errors.push('name is required');
+  }
+  if (!body.category || !VALID_MATERIAL_CATEGORIES.includes(body.category as string)) {
+    errors.push('invalid category');
+  }
+  if (!body.fileType || !VALID_FILE_TYPES.includes(body.fileType as string)) {
+    errors.push('invalid fileType');
+  }
+  if (!body.fileSize || typeof body.fileSize !== 'string' || body.fileSize.trim() === '') {
+    errors.push('fileSize is required');
+  }
+  if (!body.updatedAt || typeof body.updatedAt !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.updatedAt)) {
+    errors.push('updatedAt is required (YYYY-MM-DD)');
+  }
+  if (!body.description || typeof body.description !== 'string' || body.description.trim() === '') {
+    errors.push('description is required');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const id = crypto.randomUUID();
+  const user = c.get('user');
+
+  await c.env.DB.prepare(
+    `INSERT INTO materials (id, name, category, file_type, file_size, updated_at, description, created_by)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(
+      id,
+      (body.name as string).trim(),
+      body.category as string,
+      body.fileType as string,
+      (body.fileSize as string).trim(),
+      body.updatedAt as string,
+      (body.description as string).trim(),
+      user.sub,
+    )
+    .run();
+
+  const row = await c.env.DB.prepare('SELECT * FROM materials WHERE id = ?')
+    .bind(id)
+    .first<MaterialRow>();
+
+  return c.json(toMaterialResponse(row!), 201);
+});
+
+app.patch('/api/materials/:id', requireManager(), async (c) => {
+  const id = c.req.param('id');
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const existing = await c.env.DB.prepare('SELECT * FROM materials WHERE id = ?')
+    .bind(id)
+    .first<MaterialRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  const errors: string[] = [];
+  if (body.name !== undefined && (typeof body.name !== 'string' || body.name.trim() === '')) {
+    errors.push('name cannot be empty');
+  }
+  if (body.category !== undefined && !VALID_MATERIAL_CATEGORIES.includes(body.category as string)) {
+    errors.push('invalid category');
+  }
+  if (body.fileType !== undefined && !VALID_FILE_TYPES.includes(body.fileType as string)) {
+    errors.push('invalid fileType');
+  }
+  if (body.fileSize !== undefined && (typeof body.fileSize !== 'string' || body.fileSize.trim() === '')) {
+    errors.push('fileSize cannot be empty');
+  }
+  if (body.updatedAt !== undefined && (typeof body.updatedAt !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.updatedAt))) {
+    errors.push('invalid updatedAt format (YYYY-MM-DD)');
+  }
+  if (body.description !== undefined && (typeof body.description !== 'string' || body.description.trim() === '')) {
+    errors.push('description cannot be empty');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const updates: string[] = [];
+  const params: string[] = [];
+
+  if (body.name !== undefined) {
+    updates.push('name = ?');
+    params.push((body.name as string).trim());
+  }
+  if (body.category !== undefined) {
+    updates.push('category = ?');
+    params.push(body.category as string);
+  }
+  if (body.fileType !== undefined) {
+    updates.push('file_type = ?');
+    params.push(body.fileType as string);
+  }
+  if (body.fileSize !== undefined) {
+    updates.push('file_size = ?');
+    params.push((body.fileSize as string).trim());
+  }
+  if (body.updatedAt !== undefined) {
+    updates.push('updated_at = ?');
+    params.push(body.updatedAt as string);
+  }
+  if (body.description !== undefined) {
+    updates.push('description = ?');
+    params.push((body.description as string).trim());
+  }
+
+  if (updates.length > 0) {
+    params.push(id);
+    await c.env.DB.prepare(`UPDATE materials SET ${updates.join(', ')} WHERE id = ?`)
+      .bind(...params)
+      .run();
+  }
+
+  const row = await c.env.DB.prepare('SELECT * FROM materials WHERE id = ?')
+    .bind(id)
+    .first<MaterialRow>();
+
+  return c.json(toMaterialResponse(row!));
+});
+
+app.delete('/api/materials/:id', requireManager(), async (c) => {
+  const id = c.req.param('id');
+
+  const existing = await c.env.DB.prepare('SELECT * FROM materials WHERE id = ?')
+    .bind(id)
+    .first<MaterialRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  await c.env.DB.prepare('DELETE FROM materials WHERE id = ?').bind(id).run();
+
+  return c.json({ success: true });
+});
+
 // --- Meetings (with documents) ---
 
 app.get('/api/meetings', async (c) => {
@@ -2012,6 +2163,9 @@ app.delete('/api/users/:id', requireManager(), async (c) => {
     .bind(id)
     .run();
   await c.env.DB.prepare('UPDATE events SET created_by = NULL WHERE created_by = ?')
+    .bind(id)
+    .run();
+  await c.env.DB.prepare('UPDATE materials SET created_by = NULL WHERE created_by = ?')
     .bind(id)
     .run();
 

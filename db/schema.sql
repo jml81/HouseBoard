@@ -64,7 +64,8 @@ CREATE TABLE IF NOT EXISTS materials (
   file_type TEXT NOT NULL CHECK (file_type IN ('pdf','xlsx','docx')),
   file_size TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  description TEXT NOT NULL
+  description TEXT NOT NULL,
+  created_by TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_materials_updated_at ON materials(updated_at DESC);

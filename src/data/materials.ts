@@ -9,6 +9,7 @@ export const materials: Material[] = [
     fileSize: '245 KB',
     updatedAt: '2025-09-15',
     description: 'As Oy Mäntyrinteen järjestyssäännöt, päivitetty 2025.',
+    createdBy: null,
   },
   {
     id: 'm2',
@@ -18,6 +19,7 @@ export const materials: Material[] = [
     fileSize: '380 KB',
     updatedAt: '2024-03-20',
     description: 'Voimassa oleva yhtiöjärjestys.',
+    createdBy: null,
   },
   {
     id: 'm3',
@@ -27,6 +29,7 @@ export const materials: Material[] = [
     fileSize: '1.2 MB',
     updatedAt: '2026-02-10',
     description: 'Hallituksen toimintakertomus tilikaudelta 2025.',
+    createdBy: null,
   },
   {
     id: 'm4',
@@ -36,6 +39,7 @@ export const materials: Material[] = [
     fileSize: '890 KB',
     updatedAt: '2026-02-10',
     description: 'Taloyhtiön tilinpäätös tilikaudelta 1.1.-31.12.2025.',
+    createdBy: null,
   },
   {
     id: 'm5',
@@ -45,6 +49,7 @@ export const materials: Material[] = [
     fileSize: '156 KB',
     updatedAt: '2026-01-15',
     description: 'Hyväksytty talousarvio vuodelle 2026.',
+    createdBy: null,
   },
   {
     id: 'm6',
@@ -54,6 +59,7 @@ export const materials: Material[] = [
     fileSize: '2.1 MB',
     updatedAt: '2025-11-20',
     description: 'Pitkän tähtäimen kunnossapitosuunnitelma (PTS) vuosille 2026-2031.',
+    createdBy: null,
   },
   {
     id: 'm7',
@@ -63,6 +69,7 @@ export const materials: Material[] = [
     fileSize: '420 KB',
     updatedAt: '2025-04-15',
     description: 'Varsinaisen yhtiökokouksen 2025 pöytäkirja.',
+    createdBy: null,
   },
   {
     id: 'm8',
@@ -72,6 +79,7 @@ export const materials: Material[] = [
     fileSize: '310 KB',
     updatedAt: '2025-06-01',
     description: 'Taloyhtiön energiatodistus, energialuokka D.',
+    createdBy: null,
   },
   {
     id: 'm9',
@@ -81,6 +89,7 @@ export const materials: Material[] = [
     fileSize: '1.8 MB',
     updatedAt: '2025-08-10',
     description: 'Taloyhtiön pelastussuunnitelma ja turvallisuusohjeet.',
+    createdBy: null,
   },
   {
     id: 'm10',
@@ -90,5 +99,6 @@ export const materials: Material[] = [
     fileSize: '98 KB',
     updatedAt: '2026-02-01',
     description: 'Vastikkeiden maksutilanteen seuranta.',
+    createdBy: null,
   },
 ];

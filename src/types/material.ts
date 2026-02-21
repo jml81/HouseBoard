@@ -10,4 +10,5 @@ export interface Material {
   fileSize: string; // e.g. "1.2 MB"
   updatedAt: string; // ISO date string
   description: string;
+  createdBy: string | null;
 }

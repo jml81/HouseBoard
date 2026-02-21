@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '@/test-utils';
+import { renderWithProviders, setTestAuth } from '@/test-utils';
+import { useAuthStore } from '@/stores/auth-store';
 import { MaterialsPage } from './materials-page';
 
 const mockMaterials = [
@@ -13,6 +14,7 @@ const mockMaterials = [
     fileSize: '245 KB',
     updatedAt: '2025-09-15',
     description: 'Järjestyssäännöt.',
+    createdBy: 'u2',
   },
   {
     id: 'm2',
@@ -22,6 +24,7 @@ const mockMaterials = [
     fileSize: '380 KB',
     updatedAt: '2024-03-20',
     description: 'Yhtiöjärjestys.',
+    createdBy: null,
   },
   {
     id: 'm3',
@@ -31,6 +34,7 @@ const mockMaterials = [
     fileSize: '1.2 MB',
     updatedAt: '2026-02-10',
     description: 'Toimintakertomus.',
+    createdBy: null,
   },
   {
     id: 'm4',
@@ -40,6 +44,7 @@ const mockMaterials = [
     fileSize: '890 KB',
     updatedAt: '2026-02-10',
     description: 'Tilinpäätös.',
+    createdBy: null,
   },
   {
     id: 'm5',
@@ -49,6 +54,7 @@ const mockMaterials = [
     fileSize: '156 KB',
     updatedAt: '2026-01-15',
     description: 'Talousarvio.',
+    createdBy: null,
   },
 ];
 
@@ -68,6 +74,12 @@ describe('MaterialsPage', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+    useAuthStore.setState({
+      isAuthenticated: false,
+      isManager: false,
+      user: null,
+      token: null,
+    });
   });
 
   it('renders page header', () => {
@@ -120,5 +132,26 @@ describe('MaterialsPage', () => {
     await screen.findByText('Järjestyssäännöt');
     const downloadButtons = screen.getAllByTitle('Lataa');
     expect(downloadButtons.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows create button for manager', async () => {
+    setTestAuth({ isManager: true });
+    renderWithProviders(<MaterialsPage />);
+    expect(await screen.findByText('Uusi materiaali')).toBeInTheDocument();
+  });
+
+  it('does not show create button for resident', () => {
+    setTestAuth({ isManager: false });
+    renderWithProviders(<MaterialsPage />);
+    expect(screen.queryByText('Uusi materiaali')).not.toBeInTheDocument();
+  });
+
+  it('opens create dialog when create button clicked', async () => {
+    setTestAuth({ isManager: true });
+    const user = userEvent.setup();
+    renderWithProviders(<MaterialsPage />);
+
+    await user.click(await screen.findByText('Uusi materiaali'));
+    expect(await screen.findByText('Lisää uusi asiakirja taloyhtiölle')).toBeInTheDocument();
   });
 });

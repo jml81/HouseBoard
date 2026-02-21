@@ -58,6 +58,15 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 execute houseboard-db --remote --command "ALTER TABLE events ADD COLUMN created_by TEXT;"
 
+      - name: D1 add materials created_by column (idempotent)
+        if: github.event_name == 'push'
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 execute houseboard-db --remote --command "ALTER TABLE materials ADD COLUMN created_by TEXT;"
+
       - name: D1 add users status column (idempotent)
         if: github.event_name == 'push'
         uses: cloudflare/wrangler-action@v3
