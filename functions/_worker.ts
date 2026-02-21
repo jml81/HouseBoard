@@ -482,7 +482,9 @@ const VALID_EVENT_STATUSES = ['upcoming', 'past'];
 const VALID_MATERIAL_CATEGORIES = ['saannot', 'kokoukset', 'talous', 'kunnossapito', 'muut'];
 const VALID_FILE_TYPES = ['pdf', 'xlsx', 'docx'];
 const VALID_MEETING_STATUSES = ['upcoming', 'completed'];
+const VALID_MEETING_TYPES = ['yhtiokokous', 'ylimaarainen-yhtiokokous', 'hallituksen-kokous'];
 const VALID_CONTACT_ROLES = ['isannoitsija', 'huolto', 'hallitus', 'siivous', 'muu'];
+const VALID_BOARD_ROLES = ['puheenjohtaja', 'varapuheenjohtaja', 'jasen', 'varajasen'];
 const VALID_MARKETPLACE_CATEGORIES = [
   'huonekalu',
   'elektroniikka',
@@ -1574,6 +1576,219 @@ app.get('/api/meetings/:id', async (c) => {
   return c.json(response);
 });
 
+app.post('/api/meetings', requireManager(), async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const errors: string[] = [];
+  if (!body.title || typeof body.title !== 'string' || body.title.trim() === '') {
+    errors.push('title is required');
+  }
+  if (!body.type || typeof body.type !== 'string' || !VALID_MEETING_TYPES.includes(body.type)) {
+    errors.push('type is required and must be one of: ' + VALID_MEETING_TYPES.join(', '));
+  }
+  if (!body.status || typeof body.status !== 'string' || !VALID_MEETING_STATUSES.includes(body.status)) {
+    errors.push('status is required and must be one of: ' + VALID_MEETING_STATUSES.join(', '));
+  }
+  if (!body.date || typeof body.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.date)) {
+    errors.push('date is required (YYYY-MM-DD)');
+  }
+  if (!body.startTime || typeof body.startTime !== 'string' || !/^\d{2}:\d{2}$/.test(body.startTime)) {
+    errors.push('startTime is required (HH:mm)');
+  }
+  if (!body.endTime || typeof body.endTime !== 'string' || !/^\d{2}:\d{2}$/.test(body.endTime)) {
+    errors.push('endTime is required (HH:mm)');
+  }
+  if (
+    body.startTime && body.endTime &&
+    typeof body.startTime === 'string' && typeof body.endTime === 'string' &&
+    body.endTime <= body.startTime
+  ) {
+    errors.push('endTime must be after startTime');
+  }
+  if (!body.location || typeof body.location !== 'string' || body.location.trim() === '') {
+    errors.push('location is required');
+  }
+  if (!body.description || typeof body.description !== 'string' || body.description.trim() === '') {
+    errors.push('description is required');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const id = crypto.randomUUID();
+
+  await c.env.DB.prepare(
+    `INSERT INTO meetings (id, title, type, status, date, start_time, end_time, location, description)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(
+      id,
+      (body.title as string).trim(),
+      body.type as string,
+      body.status as string,
+      body.date as string,
+      body.startTime as string,
+      body.endTime as string,
+      (body.location as string).trim(),
+      (body.description as string).trim(),
+    )
+    .run();
+
+  const row = await c.env.DB.prepare('SELECT * FROM meetings WHERE id = ?')
+    .bind(id)
+    .first<MeetingRow>();
+
+  const response: MeetingResponse = {
+    id: row!.id,
+    title: row!.title,
+    type: row!.type,
+    status: row!.status,
+    date: row!.date,
+    startTime: row!.start_time,
+    endTime: row!.end_time,
+    location: row!.location,
+    description: row!.description,
+    documents: [],
+  };
+
+  return c.json(response, 201);
+});
+
+app.patch('/api/meetings/:id', requireManager(), async (c) => {
+  const id = c.req.param('id');
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const existing = await c.env.DB.prepare('SELECT * FROM meetings WHERE id = ?')
+    .bind(id)
+    .first<MeetingRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  const errors: string[] = [];
+  if (body.title !== undefined && (typeof body.title !== 'string' || body.title.trim() === '')) {
+    errors.push('title cannot be empty');
+  }
+  if (body.type !== undefined && (typeof body.type !== 'string' || !VALID_MEETING_TYPES.includes(body.type))) {
+    errors.push('invalid type');
+  }
+  if (body.status !== undefined && (typeof body.status !== 'string' || !VALID_MEETING_STATUSES.includes(body.status))) {
+    errors.push('invalid status');
+  }
+  if (body.date !== undefined && (typeof body.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.date))) {
+    errors.push('invalid date format (YYYY-MM-DD)');
+  }
+  if (body.startTime !== undefined && (typeof body.startTime !== 'string' || !/^\d{2}:\d{2}$/.test(body.startTime))) {
+    errors.push('invalid startTime format (HH:mm)');
+  }
+  if (body.endTime !== undefined && (typeof body.endTime !== 'string' || !/^\d{2}:\d{2}$/.test(body.endTime))) {
+    errors.push('invalid endTime format (HH:mm)');
+  }
+  if (body.location !== undefined && (typeof body.location !== 'string' || body.location.trim() === '')) {
+    errors.push('location cannot be empty');
+  }
+  if (body.description !== undefined && (typeof body.description !== 'string' || body.description.trim() === '')) {
+    errors.push('description cannot be empty');
+  }
+
+  const newStartTime = (body.startTime as string | undefined) ?? existing.start_time;
+  const newEndTime = (body.endTime as string | undefined) ?? existing.end_time;
+  if (newEndTime <= newStartTime) {
+    errors.push('endTime must be after startTime');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const updates: string[] = [];
+  const params: string[] = [];
+
+  if (body.title !== undefined) {
+    updates.push('title = ?');
+    params.push((body.title as string).trim());
+  }
+  if (body.type !== undefined) {
+    updates.push('type = ?');
+    params.push(body.type as string);
+  }
+  if (body.status !== undefined) {
+    updates.push('status = ?');
+    params.push(body.status as string);
+  }
+  if (body.date !== undefined) {
+    updates.push('date = ?');
+    params.push(body.date as string);
+  }
+  if (body.startTime !== undefined) {
+    updates.push('start_time = ?');
+    params.push(body.startTime as string);
+  }
+  if (body.endTime !== undefined) {
+    updates.push('end_time = ?');
+    params.push(body.endTime as string);
+  }
+  if (body.location !== undefined) {
+    updates.push('location = ?');
+    params.push((body.location as string).trim());
+  }
+  if (body.description !== undefined) {
+    updates.push('description = ?');
+    params.push((body.description as string).trim());
+  }
+
+  if (updates.length > 0) {
+    params.push(id);
+    await c.env.DB.prepare(`UPDATE meetings SET ${updates.join(', ')} WHERE id = ?`)
+      .bind(...params)
+      .run();
+  }
+
+  const row = await c.env.DB.prepare('SELECT * FROM meetings WHERE id = ?')
+    .bind(id)
+    .first<MeetingRow>();
+
+  const { results: docRows } = await c.env.DB.prepare(
+    'SELECT * FROM meeting_documents WHERE meeting_id = ? ORDER BY id',
+  )
+    .bind(id)
+    .all<MeetingDocumentRow>();
+
+  const meetingResponse: MeetingResponse = {
+    id: row!.id,
+    title: row!.title,
+    type: row!.type,
+    status: row!.status,
+    date: row!.date,
+    startTime: row!.start_time,
+    endTime: row!.end_time,
+    location: row!.location,
+    description: row!.description,
+    documents: docRows.map(toMeetingDocumentResponse),
+  };
+
+  return c.json(meetingResponse);
+});
+
+app.delete('/api/meetings/:id', requireManager(), async (c) => {
+  const id = c.req.param('id');
+
+  const existing = await c.env.DB.prepare('SELECT * FROM meetings WHERE id = ?')
+    .bind(id)
+    .first<MeetingRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  await c.env.DB.prepare('DELETE FROM meeting_documents WHERE meeting_id = ?').bind(id).run();
+  await c.env.DB.prepare('DELETE FROM meetings WHERE id = ?').bind(id).run();
+
+  return c.json({ success: true });
+});
+
 // --- Board members ---
 
 app.get('/api/board-members', async (c) => {
@@ -1582,6 +1797,175 @@ app.get('/api/board-members', async (c) => {
   ).all<BoardMemberRow>();
 
   return c.json(results.map(toBoardMemberResponse));
+});
+
+app.post('/api/board-members', requireManager(), async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const errors: string[] = [];
+  if (!body.name || typeof body.name !== 'string' || body.name.trim() === '') {
+    errors.push('name is required');
+  }
+  if (!body.role || typeof body.role !== 'string' || !VALID_BOARD_ROLES.includes(body.role)) {
+    errors.push('role is required and must be one of: ' + VALID_BOARD_ROLES.join(', '));
+  }
+  if (!body.apartment || typeof body.apartment !== 'string' || body.apartment.trim() === '') {
+    errors.push('apartment is required');
+  }
+  if (!body.email || typeof body.email !== 'string' || !isValidEmail(body.email)) {
+    errors.push('valid email is required');
+  }
+  if (!body.phone || typeof body.phone !== 'string' || body.phone.trim() === '') {
+    errors.push('phone is required');
+  }
+  if (!body.termStart || typeof body.termStart !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.termStart)) {
+    errors.push('termStart is required (YYYY-MM-DD)');
+  }
+  if (!body.termEnd || typeof body.termEnd !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.termEnd)) {
+    errors.push('termEnd is required (YYYY-MM-DD)');
+  }
+  if (
+    body.termStart && body.termEnd &&
+    typeof body.termStart === 'string' && typeof body.termEnd === 'string' &&
+    body.termEnd <= body.termStart
+  ) {
+    errors.push('termEnd must be after termStart');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const id = crypto.randomUUID();
+
+  await c.env.DB.prepare(
+    `INSERT INTO board_members (id, name, role, apartment, email, phone, term_start, term_end)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(
+      id,
+      (body.name as string).trim(),
+      body.role as string,
+      (body.apartment as string).trim(),
+      (body.email as string).trim(),
+      (body.phone as string).trim(),
+      body.termStart as string,
+      body.termEnd as string,
+    )
+    .run();
+
+  const row = await c.env.DB.prepare('SELECT * FROM board_members WHERE id = ?')
+    .bind(id)
+    .first<BoardMemberRow>();
+
+  return c.json(toBoardMemberResponse(row!), 201);
+});
+
+app.patch('/api/board-members/:id', requireManager(), async (c) => {
+  const id = c.req.param('id');
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const existing = await c.env.DB.prepare('SELECT * FROM board_members WHERE id = ?')
+    .bind(id)
+    .first<BoardMemberRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  const errors: string[] = [];
+  if (body.name !== undefined && (typeof body.name !== 'string' || body.name.trim() === '')) {
+    errors.push('name cannot be empty');
+  }
+  if (body.role !== undefined && (typeof body.role !== 'string' || !VALID_BOARD_ROLES.includes(body.role))) {
+    errors.push('invalid role');
+  }
+  if (body.apartment !== undefined && (typeof body.apartment !== 'string' || body.apartment.trim() === '')) {
+    errors.push('apartment cannot be empty');
+  }
+  if (body.email !== undefined && (typeof body.email !== 'string' || !isValidEmail(body.email))) {
+    errors.push('invalid email');
+  }
+  if (body.phone !== undefined && (typeof body.phone !== 'string' || body.phone.trim() === '')) {
+    errors.push('phone cannot be empty');
+  }
+  if (body.termStart !== undefined && (typeof body.termStart !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.termStart))) {
+    errors.push('invalid termStart format (YYYY-MM-DD)');
+  }
+  if (body.termEnd !== undefined && (typeof body.termEnd !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(body.termEnd))) {
+    errors.push('invalid termEnd format (YYYY-MM-DD)');
+  }
+
+  const newTermStart = (body.termStart as string | undefined) ?? existing.term_start;
+  const newTermEnd = (body.termEnd as string | undefined) ?? existing.term_end;
+  if (newTermEnd <= newTermStart) {
+    errors.push('termEnd must be after termStart');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const updates: string[] = [];
+  const params: string[] = [];
+
+  if (body.name !== undefined) {
+    updates.push('name = ?');
+    params.push((body.name as string).trim());
+  }
+  if (body.role !== undefined) {
+    updates.push('role = ?');
+    params.push(body.role as string);
+  }
+  if (body.apartment !== undefined) {
+    updates.push('apartment = ?');
+    params.push((body.apartment as string).trim());
+  }
+  if (body.email !== undefined) {
+    updates.push('email = ?');
+    params.push((body.email as string).trim());
+  }
+  if (body.phone !== undefined) {
+    updates.push('phone = ?');
+    params.push((body.phone as string).trim());
+  }
+  if (body.termStart !== undefined) {
+    updates.push('term_start = ?');
+    params.push(body.termStart as string);
+  }
+  if (body.termEnd !== undefined) {
+    updates.push('term_end = ?');
+    params.push(body.termEnd as string);
+  }
+
+  if (updates.length > 0) {
+    params.push(id);
+    await c.env.DB.prepare(`UPDATE board_members SET ${updates.join(', ')} WHERE id = ?`)
+      .bind(...params)
+      .run();
+  }
+
+  const row = await c.env.DB.prepare('SELECT * FROM board_members WHERE id = ?')
+    .bind(id)
+    .first<BoardMemberRow>();
+
+  return c.json(toBoardMemberResponse(row!));
+});
+
+app.delete('/api/board-members/:id', requireManager(), async (c) => {
+  const id = c.req.param('id');
+
+  const existing = await c.env.DB.prepare('SELECT * FROM board_members WHERE id = ?')
+    .bind(id)
+    .first<BoardMemberRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  await c.env.DB.prepare('DELETE FROM board_members WHERE id = ?').bind(id).run();
+
+  return c.json({ success: true });
 });
 
 // --- Apartments ---
@@ -1624,6 +2008,151 @@ app.get('/api/contacts', async (c) => {
     .all<ContactRow>();
 
   return c.json(results.map(toContactResponse));
+});
+
+app.post('/api/contacts', requireManager(), async (c) => {
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const errors: string[] = [];
+  if (!body.name || typeof body.name !== 'string' || body.name.trim() === '') {
+    errors.push('name is required');
+  }
+  if (!body.role || typeof body.role !== 'string' || !VALID_CONTACT_ROLES.includes(body.role)) {
+    errors.push('role is required and must be one of: ' + VALID_CONTACT_ROLES.join(', '));
+  }
+  if (!body.phone || typeof body.phone !== 'string' || body.phone.trim() === '') {
+    errors.push('phone is required');
+  }
+  if (!body.email || typeof body.email !== 'string' || !isValidEmail(body.email)) {
+    errors.push('valid email is required');
+  }
+  if (body.company !== undefined && typeof body.company !== 'string') {
+    errors.push('company must be a string');
+  }
+  if (body.description !== undefined && typeof body.description !== 'string') {
+    errors.push('description must be a string');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const id = crypto.randomUUID();
+
+  await c.env.DB.prepare(
+    `INSERT INTO contacts (id, name, role, company, phone, email, description)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(
+      id,
+      (body.name as string).trim(),
+      body.role as string,
+      body.company ? (body.company as string).trim() : null,
+      (body.phone as string).trim(),
+      (body.email as string).trim(),
+      body.description ? (body.description as string).trim() : null,
+    )
+    .run();
+
+  const row = await c.env.DB.prepare('SELECT * FROM contacts WHERE id = ?')
+    .bind(id)
+    .first<ContactRow>();
+
+  return c.json(toContactResponse(row!), 201);
+});
+
+app.patch('/api/contacts/:id', requireManager(), async (c) => {
+  const id = c.req.param('id');
+  const body = await c.req.json<Record<string, unknown>>();
+
+  const existing = await c.env.DB.prepare('SELECT * FROM contacts WHERE id = ?')
+    .bind(id)
+    .first<ContactRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  const errors: string[] = [];
+  if (body.name !== undefined && (typeof body.name !== 'string' || body.name.trim() === '')) {
+    errors.push('name cannot be empty');
+  }
+  if (body.role !== undefined && (typeof body.role !== 'string' || !VALID_CONTACT_ROLES.includes(body.role))) {
+    errors.push('invalid role');
+  }
+  if (body.phone !== undefined && (typeof body.phone !== 'string' || body.phone.trim() === '')) {
+    errors.push('phone cannot be empty');
+  }
+  if (body.email !== undefined && (typeof body.email !== 'string' || !isValidEmail(body.email))) {
+    errors.push('invalid email');
+  }
+  if (body.company !== undefined && body.company !== null && typeof body.company !== 'string') {
+    errors.push('company must be a string');
+  }
+  if (body.description !== undefined && body.description !== null && typeof body.description !== 'string') {
+    errors.push('description must be a string');
+  }
+
+  if (errors.length > 0) {
+    return c.json({ error: 'Validation failed', details: errors }, 400);
+  }
+
+  const updates: string[] = [];
+  const params: (string | null)[] = [];
+
+  if (body.name !== undefined) {
+    updates.push('name = ?');
+    params.push((body.name as string).trim());
+  }
+  if (body.role !== undefined) {
+    updates.push('role = ?');
+    params.push(body.role as string);
+  }
+  if (body.phone !== undefined) {
+    updates.push('phone = ?');
+    params.push((body.phone as string).trim());
+  }
+  if (body.email !== undefined) {
+    updates.push('email = ?');
+    params.push((body.email as string).trim());
+  }
+  if (body.company !== undefined) {
+    updates.push('company = ?');
+    params.push(body.company ? (body.company as string).trim() : null);
+  }
+  if (body.description !== undefined) {
+    updates.push('description = ?');
+    params.push(body.description ? (body.description as string).trim() : null);
+  }
+
+  if (updates.length > 0) {
+    params.push(id);
+    await c.env.DB.prepare(`UPDATE contacts SET ${updates.join(', ')} WHERE id = ?`)
+      .bind(...params)
+      .run();
+  }
+
+  const row = await c.env.DB.prepare('SELECT * FROM contacts WHERE id = ?')
+    .bind(id)
+    .first<ContactRow>();
+
+  return c.json(toContactResponse(row!));
+});
+
+app.delete('/api/contacts/:id', requireManager(), async (c) => {
+  const id = c.req.param('id');
+
+  const existing = await c.env.DB.prepare('SELECT * FROM contacts WHERE id = ?')
+    .bind(id)
+    .first<ContactRow>();
+
+  if (!existing) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  await c.env.DB.prepare('DELETE FROM contacts WHERE id = ?').bind(id).run();
+
+  return c.json({ success: true });
 });
 
 // --- Marketplace items ---

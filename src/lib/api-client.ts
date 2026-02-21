@@ -12,8 +12,10 @@ import type {
   MaterialCategory,
   FileType,
   Meeting,
+  MeetingType,
   MeetingStatus,
   BoardMember,
+  BoardRole,
   Apartment,
   Contact,
   ContactRole,
@@ -184,6 +186,69 @@ export interface UpdateMaterialInput {
   description?: string;
 }
 
+export interface CreateContactInput {
+  name: string;
+  role: ContactRole;
+  phone: string;
+  email: string;
+  company?: string;
+  description?: string;
+}
+
+export interface UpdateContactInput {
+  id: string;
+  name?: string;
+  role?: ContactRole;
+  phone?: string;
+  email?: string;
+  company?: string | null;
+  description?: string | null;
+}
+
+export interface CreateBoardMemberInput {
+  name: string;
+  role: BoardRole;
+  apartment: string;
+  email: string;
+  phone: string;
+  termStart: string;
+  termEnd: string;
+}
+
+export interface UpdateBoardMemberInput {
+  id: string;
+  name?: string;
+  role?: BoardRole;
+  apartment?: string;
+  email?: string;
+  phone?: string;
+  termStart?: string;
+  termEnd?: string;
+}
+
+export interface CreateMeetingInput {
+  title: string;
+  type: MeetingType;
+  status: MeetingStatus;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  description: string;
+}
+
+export interface UpdateMeetingInput {
+  id: string;
+  title?: string;
+  type?: MeetingType;
+  status?: MeetingStatus;
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+  location?: string;
+  description?: string;
+}
+
 export interface CreateApartmentPaymentInput {
   apartmentId: string;
   paymentStatus: PaymentStatus;
@@ -346,11 +411,47 @@ export const apiClient = {
     get(id: string): Promise<Meeting> {
       return fetchJson<Meeting>(`/api/meetings/${encodeURIComponent(id)}`);
     },
+    create(input: CreateMeetingInput): Promise<Meeting> {
+      return mutateJson<Meeting>('/api/meetings', {
+        method: 'POST',
+        body: input,
+      });
+    },
+    update(input: UpdateMeetingInput): Promise<Meeting> {
+      const { id, ...data } = input;
+      return mutateJson<Meeting>(`/api/meetings/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: data,
+      });
+    },
+    delete(id: string): Promise<{ success: boolean }> {
+      return mutateJson<{ success: boolean }>(`/api/meetings/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+    },
   },
 
   boardMembers: {
     list(): Promise<BoardMember[]> {
       return fetchJson<BoardMember[]>('/api/board-members');
+    },
+    create(input: CreateBoardMemberInput): Promise<BoardMember> {
+      return mutateJson<BoardMember>('/api/board-members', {
+        method: 'POST',
+        body: input,
+      });
+    },
+    update(input: UpdateBoardMemberInput): Promise<BoardMember> {
+      const { id, ...data } = input;
+      return mutateJson<BoardMember>(`/api/board-members/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: data,
+      });
+    },
+    delete(id: string): Promise<{ success: boolean }> {
+      return mutateJson<{ success: boolean }>(`/api/board-members/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
     },
   },
 
@@ -367,6 +468,24 @@ export const apiClient = {
     list(role?: ContactRole): Promise<Contact[]> {
       const url = role ? `/api/contacts?role=${encodeURIComponent(role)}` : '/api/contacts';
       return fetchJson<Contact[]>(url);
+    },
+    create(input: CreateContactInput): Promise<Contact> {
+      return mutateJson<Contact>('/api/contacts', {
+        method: 'POST',
+        body: input,
+      });
+    },
+    update(input: UpdateContactInput): Promise<Contact> {
+      const { id, ...data } = input;
+      return mutateJson<Contact>(`/api/contacts/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: data,
+      });
+    },
+    delete(id: string): Promise<{ success: boolean }> {
+      return mutateJson<{ success: boolean }>(`/api/contacts/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
     },
   },
 
