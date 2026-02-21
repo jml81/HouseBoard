@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -72,6 +72,11 @@ export function LoginForm(): React.JSX.Element {
             <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
               {t('auth.login')}
             </Button>
+            <div className="text-center">
+              <Link to="/salasanan-palautus" className="text-sm text-primary hover:underline">
+                {t('auth.forgotPassword')}
+              </Link>
+            </div>
           </form>
         </CardContent>
       </Card>

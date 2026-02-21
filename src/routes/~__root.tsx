@@ -11,7 +11,11 @@ function RootLayoutWrapper(): React.JSX.Element {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   // Display route and login page bypass layout and auth
-  if (pathname.startsWith('/naytto') || pathname === '/kirjaudu') {
+  if (
+    pathname.startsWith('/naytto') ||
+    pathname === '/kirjaudu' ||
+    pathname.startsWith('/salasanan-palautus')
+  ) {
     return <Outlet />;
   }
 

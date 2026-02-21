@@ -56,7 +56,18 @@
     "sessionExpired": "Your session has expired. Please log in again.",
     "managerToggle": "Manager mode",
     "managerModeOn": "Manager mode on",
-    "managerModeOff": "Manager mode off"
+    "managerModeOff": "Manager mode off",
+    "forgotPassword": "Forgot your password?",
+    "forgotPasswordTitle": "Reset password",
+    "forgotPasswordDescription": "Enter your email address and we'll send you a password reset link.",
+    "forgotPasswordSuccess": "If the email address exists, a reset link has been sent. Please check your email.",
+    "forgotPasswordError": "Something went wrong. Please try again later.",
+    "sendResetLink": "Send reset link",
+    "backToLogin": "Back to login",
+    "resetPasswordTitle": "Set new password",
+    "resetPasswordSuccess": "Password changed successfully! You can now log in with your new password.",
+    "resetPasswordError": "The reset link is invalid or expired.",
+    "resetPasswordSubmit": "Change password"
   },
   "dashboard": {
     "welcome": "Welcome!",

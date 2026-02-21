@@ -70,6 +70,19 @@ export async function verifyPassword(password: string, stored: string): Promise<
   return diff === 0;
 }
 
+// --- Password reset token helpers ---
+
+export async function generateResetToken(): Promise<string> {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  return toHex(bytes.buffer as ArrayBuffer);
+}
+
+export async function hashToken(token: string): Promise<string> {
+  const data = new TextEncoder().encode(token);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return toHex(hash);
+}
+
 // --- JWT (HS256) ---
 
 function base64UrlEncode(data: Uint8Array): string {
