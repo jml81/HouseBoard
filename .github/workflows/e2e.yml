@@ -30,10 +30,25 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Deploy preview
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=houseboard
+
+      - name: Wait for edge propagation
+        run: sleep 15
+
       - name: Run E2E tests
         run: pnpm exec playwright test
         env:
-          BASE_URL: http://localhost:5173
+          BASE_URL: https://houseboard.pages.dev
+          E2E_RESIDENT_EMAIL: testaaja@talo.fi
+          E2E_RESIDENT_PASSWORD: ${{ secrets.E2E_RESIDENT_PASSWORD }}
+          E2E_MANAGER_EMAIL: testipj@talo.fi
+          E2E_MANAGER_PASSWORD: ${{ secrets.E2E_MANAGER_PASSWORD }}
 
       - name: Upload test report
         if: failure()
