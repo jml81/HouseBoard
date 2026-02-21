@@ -13,7 +13,7 @@ const mockItem: MarketplaceItem = {
   category: 'elektroniikka',
   condition: 'hyva',
   status: 'available',
-  seller: { name: 'Testi Myyjä', apartment: 'B 5' },
+  seller: { name: 'Testi', apartment: 'B 5' },
   publishedAt: '2026-02-12',
   createdBy: 'other-user',
 };
@@ -28,7 +28,7 @@ const freeItem: MarketplaceItem = {
 const ownedItem: MarketplaceItem = {
   ...mockItem,
   id: 'test-3',
-  seller: { name: 'Aino Virtanen', apartment: 'A 12' },
+  seller: { name: 'Aino', apartment: 'A 12' },
   createdBy: 'u1',
 };
 
@@ -96,7 +96,7 @@ describe('MarketplaceItemDetail', () => {
 
   it('renders seller info', async () => {
     await renderWithRouterContext(<MarketplaceItemDetail item={mockItem} />);
-    expect(screen.getByText(/Testi Myyjä/)).toBeInTheDocument();
+    expect(screen.getByText(/Myyjä.*Testi/)).toBeInTheDocument();
     expect(screen.getByText(/B 5/)).toBeInTheDocument();
   });
 

@@ -12,7 +12,7 @@ const mockItem: MarketplaceItem = {
   category: 'huonekalu',
   condition: 'hyva',
   status: 'available',
-  seller: { name: 'Testi Myyjä', apartment: 'A 1' },
+  seller: { name: 'Testi', apartment: 'A 1' },
   publishedAt: '2026-02-10',
   createdBy: null,
 };
@@ -66,7 +66,7 @@ describe('MarketplaceItemCard', () => {
 
   it('renders seller name', async () => {
     await renderWithRouterContext(<MarketplaceItemCard item={mockItem} />);
-    expect(screen.getByText('Testi Myyjä')).toBeInTheDocument();
+    expect(screen.getByText('Testi')).toBeInTheDocument();
   });
 
   it('renders formatted date', async () => {

@@ -76,13 +76,8 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 execute houseboard-db --remote --command "ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active';"
 
-      - name: D1 seed data
-        if: github.event_name == 'push'
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: d1 execute houseboard-db --remote --file=db/seed.sql
+      # NOTE: seed.sql is NOT run in CI — use `pnpm db:seed:remote` manually when needed.
+      # Smoke tests rely on demo users already existing in production D1.
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
