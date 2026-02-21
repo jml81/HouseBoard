@@ -12,6 +12,7 @@ import { sendEmail, buildResetEmailHtml } from './email-utils.js';
 interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
   DB: D1Database;
+  BUCKET: R2Bucket;
   JWT_SECRET: string;
   RESEND_API_KEY: string;
 }
@@ -146,6 +147,7 @@ interface MarketplaceItemRow {
   seller_apartment: string;
   published_at: string;
   created_by: string | null;
+  image_key: string | null;
 }
 
 interface ApartmentPaymentRow {
@@ -316,6 +318,7 @@ interface MarketplaceItemResponse {
   seller: { name: string; apartment: string };
   publishedAt: string;
   createdBy: string | null;
+  imageUrl: string | null;
 }
 
 interface ApartmentPaymentResponse {
@@ -458,7 +461,29 @@ function toMarketplaceItemResponse(row: MarketplaceItemRow): MarketplaceItemResp
     seller: { name: row.seller_name.split(' ')[0] || row.seller_name, apartment: row.seller_apartment },
     publishedAt: row.published_at,
     createdBy: row.created_by,
+    imageUrl: row.image_key ? `/api/files/${row.image_key}` : null,
   };
+}
+
+const VALID_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getExtensionFromContentType(contentType: string): string {
+  const map: Record<string, string> = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'application/pdf': 'pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+  };
+  return map[contentType] ?? 'bin';
 }
 
 function toApartmentPaymentResponse(row: ApartmentPaymentRow): ApartmentPaymentResponse {
@@ -790,6 +815,32 @@ function requireManager(): (c: Context<{ Bindings: Env; Variables: Variables }>,
     return next();
   };
 }
+
+// --- File serving (R2 proxy) ---
+
+app.get('/api/files/*', async (c) => {
+  const key = c.req.path.replace('/api/files/', '');
+
+  if (!key || key.includes('..')) {
+    return c.json({ error: 'Invalid file key' }, 400);
+  }
+
+  const object = await c.env.BUCKET.get(key);
+  if (!object) {
+    return c.json({ error: 'File not found' }, 404);
+  }
+
+  const contentType = object.httpMetadata?.contentType ?? 'application/octet-stream';
+  const disposition = key.startsWith('marketplace/') ? 'inline' : 'attachment';
+
+  return new Response(object.body, {
+    headers: {
+      'Content-Type': contentType,
+      'Content-Disposition': disposition,
+      'Cache-Control': 'public, max-age=31536000, immutable',
+    },
+  });
+});
 
 // --- Announcements ---
 
@@ -2326,64 +2377,95 @@ app.get('/api/marketplace-items/:id', async (c) => {
   return c.json(toMarketplaceItemResponse(row));
 });
 
-app.post('/api/marketplace-items', async (c) => {
-  const body = await c.req.json<Record<string, unknown>>();
+app.post(
+  '/api/marketplace-items',
+  bodyLimit({ maxSize: MAX_IMAGE_SIZE, onError: (c) => c.json({ error: 'File too large (max 5 MB)' }, 413) }),
+  async (c) => {
+    const contentType = c.req.header('content-type') ?? '';
+    const isFormData = contentType.includes('multipart/form-data');
 
-  const errors: string[] = [];
-  if (!body.title || typeof body.title !== 'string' || body.title.trim() === '') {
-    errors.push('title is required');
-  }
-  if (!body.description || typeof body.description !== 'string' || body.description.trim() === '') {
-    errors.push('description is required');
-  }
-  if (typeof body.price !== 'number' || body.price < 0) {
-    errors.push('price must be a non-negative number');
-  }
-  if (!body.category || !VALID_MARKETPLACE_CATEGORIES.includes(body.category as string)) {
-    errors.push('invalid category');
-  }
-  if (!body.condition || !VALID_ITEM_CONDITIONS.includes(body.condition as string)) {
-    errors.push('invalid condition');
-  }
-  if (!body.sellerName || typeof body.sellerName !== 'string') {
-    errors.push('sellerName is required');
-  }
-  if (!body.sellerApartment || typeof body.sellerApartment !== 'string') {
-    errors.push('sellerApartment is required');
-  }
+    let title: string;
+    let description: string;
+    let price: number;
+    let category: string;
+    let condition: string;
+    let sellerName: string;
+    let sellerApartment: string;
+    let imageFile: File | null = null;
 
-  if (errors.length > 0) {
-    return c.json({ error: 'Validation failed', details: errors }, 400);
-  }
+    if (isFormData) {
+      const formData = await c.req.parseBody();
+      title = typeof formData.title === 'string' ? formData.title : '';
+      description = typeof formData.description === 'string' ? formData.description : '';
+      price = Number(formData.price) || 0;
+      category = typeof formData.category === 'string' ? formData.category : '';
+      condition = typeof formData.condition === 'string' ? formData.condition : '';
+      sellerName = typeof formData.sellerName === 'string' ? formData.sellerName : '';
+      sellerApartment = typeof formData.sellerApartment === 'string' ? formData.sellerApartment : '';
+      if (formData.image instanceof File && formData.image.size > 0) {
+        imageFile = formData.image;
+      }
+    } else {
+      const body = await c.req.json<Record<string, unknown>>();
+      title = typeof body.title === 'string' ? body.title : '';
+      description = typeof body.description === 'string' ? body.description : '';
+      price = typeof body.price === 'number' ? body.price : -1;
+      category = typeof body.category === 'string' ? body.category : '';
+      condition = typeof body.condition === 'string' ? body.condition : '';
+      sellerName = typeof body.sellerName === 'string' ? body.sellerName : '';
+      sellerApartment = typeof body.sellerApartment === 'string' ? body.sellerApartment : '';
+    }
 
-  const id = crypto.randomUUID();
-  const publishedAt = new Date().toISOString().slice(0, 10);
-  const user = c.get('user');
+    const errors: string[] = [];
+    if (!title.trim()) errors.push('title is required');
+    if (!description.trim()) errors.push('description is required');
+    if (price < 0) errors.push('price must be a non-negative number');
+    if (!VALID_MARKETPLACE_CATEGORIES.includes(category)) errors.push('invalid category');
+    if (!VALID_ITEM_CONDITIONS.includes(condition)) errors.push('invalid condition');
+    if (!sellerName) errors.push('sellerName is required');
+    if (!sellerApartment) errors.push('sellerApartment is required');
 
-  await c.env.DB.prepare(
-    `INSERT INTO marketplace_items (id, title, description, price, category, condition, status, seller_name, seller_apartment, published_at, created_by)
-     VALUES (?, ?, ?, ?, ?, ?, 'available', ?, ?, ?, ?)`,
-  )
-    .bind(
-      id,
-      (body.title as string).trim(),
-      (body.description as string).trim(),
-      body.price as number,
-      body.category as string,
-      body.condition as string,
-      (body.sellerName as string).trim(),
-      (body.sellerApartment as string).trim(),
-      publishedAt,
-      user.sub,
+    if (imageFile) {
+      if (!VALID_IMAGE_TYPES.includes(imageFile.type)) {
+        errors.push('invalid image type (allowed: JPEG, PNG, WebP)');
+      }
+      if (imageFile.size > MAX_IMAGE_SIZE) {
+        errors.push('image too large (max 5 MB)');
+      }
+    }
+
+    if (errors.length > 0) {
+      return c.json({ error: 'Validation failed', details: errors }, 400);
+    }
+
+    const id = crypto.randomUUID();
+    const publishedAt = new Date().toISOString().slice(0, 10);
+    const user = c.get('user');
+
+    let imageKey: string | null = null;
+    if (imageFile) {
+      const ext = getExtensionFromContentType(imageFile.type);
+      imageKey = `marketplace/${crypto.randomUUID()}.${ext}`;
+      await c.env.BUCKET.put(imageKey, imageFile.stream(), {
+        httpMetadata: { contentType: imageFile.type },
+        customMetadata: { originalName: imageFile.name },
+      });
+    }
+
+    await c.env.DB.prepare(
+      `INSERT INTO marketplace_items (id, title, description, price, category, condition, status, seller_name, seller_apartment, published_at, created_by, image_key)
+       VALUES (?, ?, ?, ?, ?, ?, 'available', ?, ?, ?, ?, ?)`,
     )
-    .run();
+      .bind(id, title.trim(), description.trim(), price, category, condition, sellerName.trim(), sellerApartment.trim(), publishedAt, user.sub, imageKey)
+      .run();
 
-  const row = await c.env.DB.prepare('SELECT * FROM marketplace_items WHERE id = ?')
-    .bind(id)
-    .first<MarketplaceItemRow>();
+    const row = await c.env.DB.prepare('SELECT * FROM marketplace_items WHERE id = ?')
+      .bind(id)
+      .first<MarketplaceItemRow>();
 
-  return c.json(toMarketplaceItemResponse(row!), 201);
-});
+    return c.json(toMarketplaceItemResponse(row!), 201);
+  },
+);
 
 app.patch('/api/marketplace-items/:id', async (c) => {
   const id = c.req.param('id');
@@ -2433,6 +2515,11 @@ app.delete('/api/marketplace-items/:id', async (c) => {
   const user = c.get('user');
   if (existing.created_by !== null && existing.created_by !== user.sub && user.role !== 'manager') {
     return c.json({ error: 'Forbidden: not the owner' }, 403);
+  }
+
+  // Delete R2 image if exists
+  if (existing.image_key) {
+    await c.env.BUCKET.delete(existing.image_key);
   }
 
   await c.env.DB.prepare('DELETE FROM marketplace_items WHERE id = ?').bind(id).run();

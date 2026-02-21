@@ -13,10 +13,10 @@ pages_build_output_dir = "dist"
 # id = ""
 # preview_id = ""
 
-# [[r2_buckets]]
-# binding = "BUCKET"
-# bucket_name = ""
-# preview_bucket_name = ""
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "houseboard-files"
+preview_bucket_name = "houseboard-files-preview"
 
 [[d1_databases]]
 binding = "DB"

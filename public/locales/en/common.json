@@ -461,7 +461,11 @@
     "markAvailable": "Mark as available",
     "validationTitleRequired": "Title is required",
     "validationDescriptionRequired": "Description is required",
-    "validationPriceInvalid": "Price must be at least 0"
+    "validationPriceInvalid": "Price must be at least 0",
+    "itemImage": "Product image",
+    "imageTooLarge": "Image is too large (max 5 MB)",
+    "imageInvalidType": "Invalid image type (allowed: JPEG, PNG, WebP)",
+    "imagePreview": "Image preview"
   },
   "marketplaceCategories": {
     "huonekalu": "Furniture",

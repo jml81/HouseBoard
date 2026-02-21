@@ -18,9 +18,17 @@ export function MarketplaceItemCard({ item }: MarketplaceItemCardProps): React.J
     <Card className="gap-3">
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-base">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted">
-            <CategoryIcon category={item.category} className="size-5" />
-          </div>
+          {item.imageUrl ? (
+            <img
+              src={item.imageUrl}
+              alt={item.title}
+              className="size-10 shrink-0 rounded-md object-cover"
+            />
+          ) : (
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted">
+              <CategoryIcon category={item.category} className="size-5" />
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <Link to="/kirpputori/$id" params={{ id: item.id }} className="hover:text-hb-accent">
               {item.title}

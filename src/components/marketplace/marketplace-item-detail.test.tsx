@@ -16,6 +16,7 @@ const mockItem: MarketplaceItem = {
   seller: { name: 'Testi', apartment: 'B 5' },
   publishedAt: '2026-02-12',
   createdBy: 'other-user',
+  imageUrl: null,
 };
 
 const freeItem: MarketplaceItem = {
@@ -193,5 +194,18 @@ describe('MarketplaceItemDetail', () => {
     expect(
       screen.queryByText('Haluatko varmasti poistaa tämän tuotteen? Toimintoa ei voi perua.'),
     ).not.toBeInTheDocument();
+  });
+
+  it('renders large image when imageUrl is present', async () => {
+    const itemWithImage = { ...mockItem, imageUrl: '/api/files/marketplace/test.jpg' };
+    await renderWithRouterContext(<MarketplaceItemDetail item={itemWithImage} />);
+    const img = screen.getByAltText('Testituote');
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute('src', '/api/files/marketplace/test.jpg');
+  });
+
+  it('renders category icon fallback when no image', async () => {
+    await renderWithRouterContext(<MarketplaceItemDetail item={mockItem} />);
+    expect(screen.queryByAltText('Testituote')).not.toBeInTheDocument();
   });
 });

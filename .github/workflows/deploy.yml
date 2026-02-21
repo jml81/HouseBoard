@@ -85,6 +85,15 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 execute houseboard-db --remote --command "CREATE TABLE IF NOT EXISTS password_reset_tokens (id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, token_hash TEXT NOT NULL, expires_at TEXT NOT NULL, used_at TEXT, created_at TEXT NOT NULL DEFAULT (datetime('now'))); CREATE INDEX IF NOT EXISTS idx_prt_user_id ON password_reset_tokens(user_id); CREATE INDEX IF NOT EXISTS idx_prt_token_hash ON password_reset_tokens(token_hash);"
 
+      - name: D1 add marketplace image_key column (idempotent)
+        if: github.event_name == 'push'
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 execute houseboard-db --remote --command "ALTER TABLE marketplace_items ADD COLUMN image_key TEXT;"
+
       # NOTE: seed.sql is NOT run in CI — use `pnpm db:seed:remote` manually when needed.
       # Smoke tests rely on demo users already existing in production D1.
 

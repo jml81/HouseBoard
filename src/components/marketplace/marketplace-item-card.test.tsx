@@ -15,6 +15,7 @@ const mockItem: MarketplaceItem = {
   seller: { name: 'Testi', apartment: 'A 1' },
   publishedAt: '2026-02-10',
   createdBy: null,
+  imageUrl: null,
 };
 
 const freeItem: MarketplaceItem = {
@@ -87,5 +88,18 @@ describe('MarketplaceItemCard', () => {
   it('does not show status badge for available items', async () => {
     await renderWithRouterContext(<MarketplaceItemCard item={mockItem} />);
     expect(screen.queryByText('Myynnissä')).not.toBeInTheDocument();
+  });
+
+  it('renders image thumbnail when imageUrl is present', async () => {
+    const itemWithImage = { ...mockItem, imageUrl: '/api/files/marketplace/test.jpg' };
+    await renderWithRouterContext(<MarketplaceItemCard item={itemWithImage} />);
+    const img = screen.getByAltText('Testituote');
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute('src', '/api/files/marketplace/test.jpg');
+  });
+
+  it('renders category icon fallback when no image', async () => {
+    await renderWithRouterContext(<MarketplaceItemCard item={mockItem} />);
+    expect(screen.queryByAltText('Testituote')).not.toBeInTheDocument();
   });
 });

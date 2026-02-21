@@ -24,6 +24,7 @@ const mockItems = [
     seller: { name: 'Minna Korhonen', apartment: 'B 12' },
     publishedAt: '2026-02-14',
     createdBy: null,
+    imageUrl: null,
   },
 ];
 
@@ -103,7 +104,7 @@ describe('useCreateMarketplaceItem', () => {
     vi.unstubAllGlobals();
   });
 
-  it('sends POST and returns created item', async () => {
+  it('sends POST with JSON when no image', async () => {
     const created = {
       id: 'new-1',
       title: 'New item',
@@ -115,6 +116,7 @@ describe('useCreateMarketplaceItem', () => {
       seller: { name: 'Testi', apartment: 'A 1' },
       publishedAt: '2026-02-18',
       createdBy: 'u1',
+      imageUrl: null,
     };
     mockFetch(created);
 
@@ -141,6 +143,57 @@ describe('useCreateMarketplaceItem', () => {
         method: 'POST',
       }),
     );
+    const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls;
+    const postCall = calls.find(
+      (call: unknown[]) => (call[1] as RequestInit | undefined)?.method === 'POST',
+    );
+    expect(postCall).toBeDefined();
+    const headers = (postCall![1] as RequestInit).headers as Record<string, string>;
+    expect(headers['Content-Type']).toBe('application/json');
+  });
+
+  it('sends POST with FormData when image is provided', async () => {
+    const created = {
+      id: 'new-2',
+      title: 'Item with image',
+      description: 'Desc',
+      price: 5,
+      category: 'muu',
+      condition: 'hyva',
+      status: 'available',
+      seller: { name: 'Testi', apartment: 'A 1' },
+      publishedAt: '2026-02-18',
+      createdBy: 'u1',
+      imageUrl: '/api/files/marketplace/test.jpg',
+    };
+    mockFetch(created);
+
+    const { result } = renderHook(() => useCreateMarketplaceItem(), {
+      wrapper: createWrapper(),
+    });
+
+    const file = new File(['image-data'], 'test.jpg', { type: 'image/jpeg' });
+
+    await act(async () => {
+      const response = await result.current.mutateAsync({
+        title: 'Item with image',
+        description: 'Desc',
+        price: 5,
+        category: 'muu',
+        condition: 'hyva',
+        sellerName: 'Testi',
+        sellerApartment: 'A 1',
+        image: file,
+      });
+      expect(response).toEqual(created);
+    });
+
+    const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls;
+    const postCall = calls.find((call: unknown[]) => {
+      const init = call[1] as RequestInit | undefined;
+      return init?.body instanceof FormData;
+    });
+    expect(postCall).toBeDefined();
   });
 });
 
