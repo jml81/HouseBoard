@@ -48,7 +48,7 @@ export function Header(): React.JSX.Element {
   return (
     <header className="flex h-16 shrink-0 items-center border-b border-border bg-background">
       {/* Mobile: hamburger + logo */}
-      <div className="flex items-center gap-2 px-4 md:hidden">
+      <div className="flex min-w-0 items-center gap-2 px-2 sm:px-4 md:hidden">
         <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Menu">
           <Menu className="size-5" />
         </Button>
@@ -61,7 +61,7 @@ export function Header(): React.JSX.Element {
       <div className="hidden flex-1 md:block" />
 
       {/* Right side actions */}
-      <div className="ml-auto flex items-center gap-1 px-4">
+      <div className="ml-auto flex shrink-0 items-center gap-0.5 px-2 sm:gap-1 sm:px-4">
         {/* Manager mode toggle (only for manager role) */}
         {user?.role === 'manager' && (
           <Tooltip>
