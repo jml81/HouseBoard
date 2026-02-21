@@ -5,12 +5,25 @@ import { LoginForm } from './login-form';
 import { renderWithProviders } from '@/test-utils';
 import { useAuthStore } from '@/stores/auth-store';
 
-// Mock useNavigate
+// Mock useNavigate and Link (Link requires router context)
 vi.mock('@tanstack/react-router', async () => {
   const actual = await vi.importActual('@tanstack/react-router');
   return {
     ...(actual as Record<string, unknown>),
     useNavigate: () => vi.fn(),
+    Link: ({
+      children,
+      to,
+      ...props
+    }: {
+      children: React.ReactNode;
+      to: string;
+      className?: string;
+    }) => (
+      <a href={to} {...props}>
+        {children}
+      </a>
+    ),
   };
 });
 
