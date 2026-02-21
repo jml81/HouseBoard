@@ -45,13 +45,12 @@ export function Sidebar(): React.JSX.Element {
   const { t } = useTranslation();
   const location = useLocation();
   const isManager = useAuthStore((s) => s.isManager);
-  const isPlus = location.pathname.startsWith('/plus');
 
   return (
     <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar md:flex md:flex-col">
       <div className="flex h-16 items-center px-6">
         <Link to="/">
-          <Logo size="md" variant={isPlus ? 'plus' : 'default'} />
+          <Logo size="md" variant={isManager ? 'plus' : 'default'} />
         </Link>
       </div>
 

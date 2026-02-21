@@ -59,7 +59,33 @@ describe('Sidebar', () => {
     });
 
     const sidebar = screen.getByRole('complementary');
-    expect(within(sidebar).getByText('HouseBoard')).toBeInTheDocument();
-    expect(within(sidebar).getByText('HouseBoard+')).toBeInTheDocument();
+    // Plus logo SVG also contains "HouseBoard" text, so use getAllByText
+    expect(within(sidebar).getAllByText('HouseBoard').length).toBeGreaterThanOrEqual(1);
+    expect(within(sidebar).getAllByText('HouseBoard+').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows default logo when not manager', async () => {
+    renderWithRouter('/kalenteri');
+
+    await waitFor(() => {
+      expect(screen.getByRole('complementary')).toBeInTheDocument();
+    });
+
+    const sidebar = screen.getByRole('complementary');
+    const logo = within(sidebar).getByRole('img');
+    expect(logo).toHaveAttribute('aria-label', 'HouseBoard');
+  });
+
+  it('shows plus logo when manager', async () => {
+    setTestAuth({ isManager: true });
+    renderWithRouter('/kalenteri');
+
+    await waitFor(() => {
+      expect(screen.getByRole('complementary')).toBeInTheDocument();
+    });
+
+    const sidebar = screen.getByRole('complementary');
+    const logo = within(sidebar).getByRole('img');
+    expect(logo).toHaveAttribute('aria-label', 'HouseBoard+');
   });
 });
