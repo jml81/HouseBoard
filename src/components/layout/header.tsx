@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate, useLocation } from '@tanstack/react-router';
 import { Bell, Globe, LogOut, Menu, Shield, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -21,8 +21,10 @@ import { cn } from '@/lib/utils';
 export function Header(): React.JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const toggleSidebar = useUiStore((s) => s.toggleSidebar);
   const isManager = useAuthStore((s) => s.isManager);
+  const isPlus = location.pathname.startsWith('/plus');
   const user = useAuthStore((s) => s.user);
   const toggleManagerMode = useAuthStore((s) => s.toggleManagerMode);
   const logout = useAuthStore((s) => s.logout);
@@ -53,7 +55,7 @@ export function Header(): React.JSX.Element {
           <Menu className="size-5" />
         </Button>
         <Link to="/">
-          <Logo size="sm" />
+          <Logo size="sm" variant={isPlus ? 'plus' : 'default'} />
         </Link>
       </div>
 
