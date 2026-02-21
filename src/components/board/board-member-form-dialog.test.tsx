@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders, setTestAuth } from '@/test-utils';
 import type { BoardMember } from '@/types';
@@ -89,12 +89,12 @@ describe('BoardMemberFormDialog', () => {
     await user.click(screen.getByLabelText('Puhelin'));
     await user.paste('040 111 2222');
 
-    const startInput = screen.getByLabelText('Toimikausi alkaa');
-    await user.clear(startInput);
-    await user.type(startInput, '2026-12-31');
-    const endInput = screen.getByLabelText('Toimikausi päättyy');
-    await user.clear(endInput);
-    await user.type(endInput, '2025-01-01');
+    fireEvent.change(screen.getByLabelText('Toimikausi alkaa'), {
+      target: { value: '2026-12-31' },
+    });
+    fireEvent.change(screen.getByLabelText('Toimikausi päättyy'), {
+      target: { value: '2025-01-01' },
+    });
 
     await user.click(screen.getByRole('button', { name: 'Lisää jäsen' }));
 
@@ -137,12 +137,12 @@ describe('BoardMemberFormDialog', () => {
     await user.click(screen.getByLabelText('Puhelin'));
     await user.paste('040 111 2222');
 
-    const startInput = screen.getByLabelText('Toimikausi alkaa');
-    await user.clear(startInput);
-    await user.type(startInput, '2026-01-01');
-    const endInput = screen.getByLabelText('Toimikausi päättyy');
-    await user.clear(endInput);
-    await user.type(endInput, '2027-12-31');
+    fireEvent.change(screen.getByLabelText('Toimikausi alkaa'), {
+      target: { value: '2026-01-01' },
+    });
+    fireEvent.change(screen.getByLabelText('Toimikausi päättyy'), {
+      target: { value: '2027-12-31' },
+    });
 
     await user.click(screen.getByRole('button', { name: 'Lisää jäsen' }));
 
