@@ -145,7 +145,8 @@ CREATE TABLE IF NOT EXISTS marketplace_items (
   seller_name TEXT NOT NULL,
   seller_apartment TEXT NOT NULL,
   published_at TEXT NOT NULL,
-  created_by TEXT
+  created_by TEXT,
+  image_key TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_marketplace_items_category_status ON marketplace_items(category, status);

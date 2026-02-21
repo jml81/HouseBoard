@@ -41,10 +41,14 @@ const categories: MarketplaceCategory[] = [
 
 const conditions: ItemCondition[] = ['uusi', 'hyva', 'kohtalainen', 'tyydyttava'];
 
+const VALID_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
+
 interface FormErrors {
   title?: string;
   description?: string;
   price?: string;
+  image?: string;
 }
 
 export function MarketplaceList(): React.JSX.Element {
@@ -62,6 +66,8 @@ export function MarketplaceList(): React.JSX.Element {
   const [formPrice, setFormPrice] = useState('');
   const [formCategory, setFormCategory] = useState<MarketplaceCategory>('muu');
   const [formCondition, setFormCondition] = useState<ItemCondition>('hyva');
+  const [formImage, setFormImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   const filtered = useMemo(() => {
@@ -87,7 +93,34 @@ export function MarketplaceList(): React.JSX.Element {
     setFormPrice('');
     setFormCategory('muu');
     setFormCondition('hyva');
+    setFormImage(null);
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImagePreview(null);
     setFormErrors({});
+  }
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>): void {
+    const file = e.target.files?.[0] ?? null;
+    if (!file) {
+      setFormImage(null);
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+      setImagePreview(null);
+      return;
+    }
+    if (!VALID_IMAGE_TYPES.includes(file.type)) {
+      setFormErrors((prev) => ({ ...prev, image: t('marketplace.imageInvalidType') }));
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      setFormErrors((prev) => ({ ...prev, image: t('marketplace.imageTooLarge') }));
+      return;
+    }
+    setFormImage(file);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(URL.createObjectURL(file));
+    setFormErrors((prev) => ({ ...prev, image: undefined }));
   }
 
   function validateForm(): FormErrors {
@@ -123,6 +156,7 @@ export function MarketplaceList(): React.JSX.Element {
         condition: formCondition,
         sellerName: user?.name ?? '',
         sellerApartment: user?.apartment ?? '',
+        ...(formImage ? { image: formImage } : {}),
       });
       toast.success(t('marketplace.createSuccess'));
       setDialogOpen(false);
@@ -227,6 +261,25 @@ export function MarketplaceList(): React.JSX.Element {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="item-image">{t('marketplace.itemImage')}</Label>
+                    <Input
+                      id="item-image"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleImageChange}
+                    />
+                    {formErrors.image && (
+                      <p className="text-sm text-destructive">{formErrors.image}</p>
+                    )}
+                    {imagePreview && (
+                      <img
+                        src={imagePreview}
+                        alt={t('marketplace.imagePreview')}
+                        className="mt-2 max-h-32 rounded-md object-contain"
+                      />
+                    )}
                   </div>
                 </div>
                 <DialogFooter className="mt-6">

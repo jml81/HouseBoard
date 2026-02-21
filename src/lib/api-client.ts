@@ -87,6 +87,19 @@ async function mutateJson<T>(url: string, options: { method: string; body?: unkn
   return response.json() as Promise<T>;
 }
 
+async function mutateFormData<T>(url: string, formData: FormData): Promise<T> {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: formData,
+  });
+  if (!response.ok) {
+    handleUnauthorized(response.status);
+    throw new ApiError(response.status, `API error: ${response.status.toString()}`);
+  }
+  return response.json() as Promise<T>;
+}
+
 export interface CreateAnnouncementInput {
   title: string;
   summary: string;
@@ -117,6 +130,7 @@ export interface CreateMarketplaceItemInput {
   condition: ItemCondition;
   sellerName: string;
   sellerApartment: string;
+  image?: File;
 }
 
 export interface UpdateMarketplaceStatusInput {
@@ -515,9 +529,22 @@ export const apiClient = {
       return fetchJson<MarketplaceItem>(`/api/marketplace-items/${encodeURIComponent(id)}`);
     },
     create(input: CreateMarketplaceItemInput): Promise<MarketplaceItem> {
+      if (input.image) {
+        const formData = new FormData();
+        formData.append('title', input.title);
+        formData.append('description', input.description);
+        formData.append('price', String(input.price));
+        formData.append('category', input.category);
+        formData.append('condition', input.condition);
+        formData.append('sellerName', input.sellerName);
+        formData.append('sellerApartment', input.sellerApartment);
+        formData.append('image', input.image);
+        return mutateFormData<MarketplaceItem>('/api/marketplace-items', formData);
+      }
+      const { image: _image, ...jsonInput } = input;
       return mutateJson<MarketplaceItem>('/api/marketplace-items', {
         method: 'POST',
-        body: input,
+        body: jsonInput,
       });
     },
     updateStatus(input: UpdateMarketplaceStatusInput): Promise<MarketplaceItem> {

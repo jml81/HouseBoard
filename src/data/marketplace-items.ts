@@ -13,6 +13,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     seller: { name: 'Minna Korhonen', apartment: 'B 12' },
     publishedAt: '2026-02-14',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp2',
@@ -26,6 +27,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     seller: { name: 'Jari Virtanen', apartment: 'A 3' },
     publishedAt: '2026-02-12',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp3',
@@ -39,6 +41,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     seller: { name: 'Liisa Mäkelä', apartment: 'C 22' },
     publishedAt: '2026-02-10',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp4',
@@ -52,6 +55,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     seller: { name: 'Timo Nieminen', apartment: 'A 7' },
     publishedAt: '2026-02-08',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp5',
@@ -65,6 +69,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     seller: { name: 'Anna Lahtinen', apartment: 'B 16' },
     publishedAt: '2026-02-06',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp6',
@@ -78,6 +83,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     seller: { name: 'Pekka Salminen', apartment: 'C 19' },
     publishedAt: '2026-02-04',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp7',
@@ -91,6 +97,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     seller: { name: 'Heikki Järvinen', apartment: 'A 5' },
     publishedAt: '2026-01-28',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp8',
@@ -104,6 +111,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     seller: { name: 'Sari Rantala', apartment: 'B 9' },
     publishedAt: '2026-02-01',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp9',
@@ -117,6 +125,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     seller: { name: 'Markku Laine', apartment: 'C 24' },
     publishedAt: '2026-01-25',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp10',
@@ -130,5 +139,6 @@ export const marketplaceItems: MarketplaceItem[] = [
     seller: { name: 'Tiina Koskinen', apartment: 'A 2' },
     publishedAt: '2026-01-20',
     createdBy: null,
+    imageUrl: null,
   },
 ];

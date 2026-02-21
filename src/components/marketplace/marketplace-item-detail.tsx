@@ -80,10 +80,20 @@ export function MarketplaceItemDetail({ item }: MarketplaceItemDetailProps): Rea
       </Button>
 
       <div className="space-y-4">
+        {item.imageUrl && (
+          <img
+            src={item.imageUrl}
+            alt={item.title}
+            className="max-h-64 w-full rounded-lg object-contain"
+          />
+        )}
+
         <div className="flex items-start gap-4">
-          <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-muted">
-            <CategoryIcon category={item.category} className="size-8" />
-          </div>
+          {!item.imageUrl && (
+            <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-muted">
+              <CategoryIcon category={item.category} className="size-8" />
+            </div>
+          )}
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-hb-primary">{item.title}</h1>
             <div className="mt-1 text-2xl font-bold text-hb-accent">

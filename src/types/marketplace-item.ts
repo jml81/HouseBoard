@@ -26,4 +26,5 @@ export interface MarketplaceItem {
   seller: MarketplaceSeller;
   publishedAt: string; // ISO date string
   createdBy: string | null;
+  imageUrl: string | null;
 }

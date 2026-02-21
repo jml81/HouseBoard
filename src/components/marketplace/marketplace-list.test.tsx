@@ -16,6 +16,7 @@ const mockItems = [
     seller: { name: 'Minna', apartment: 'B 12' },
     publishedAt: '2026-02-14',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp2',
@@ -28,6 +29,7 @@ const mockItems = [
     seller: { name: 'Jari', apartment: 'A 3' },
     publishedAt: '2026-02-12',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp3',
@@ -40,6 +42,7 @@ const mockItems = [
     seller: { name: 'Liisa', apartment: 'C 22' },
     publishedAt: '2026-02-10',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp4',
@@ -52,6 +55,7 @@ const mockItems = [
     seller: { name: 'Timo', apartment: 'A 7' },
     publishedAt: '2026-02-08',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp5',
@@ -64,6 +68,7 @@ const mockItems = [
     seller: { name: 'Anna', apartment: 'B 16' },
     publishedAt: '2026-02-06',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp6',
@@ -76,6 +81,7 @@ const mockItems = [
     seller: { name: 'Pekka', apartment: 'C 19' },
     publishedAt: '2026-02-04',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp7',
@@ -88,6 +94,7 @@ const mockItems = [
     seller: { name: 'Heikki', apartment: 'A 5' },
     publishedAt: '2026-01-28',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp8',
@@ -100,6 +107,7 @@ const mockItems = [
     seller: { name: 'Sari', apartment: 'B 9' },
     publishedAt: '2026-02-01',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp9',
@@ -112,6 +120,7 @@ const mockItems = [
     seller: { name: 'Markku', apartment: 'C 24' },
     publishedAt: '2026-01-25',
     createdBy: null,
+    imageUrl: null,
   },
   {
     id: 'mp10',
@@ -124,6 +133,7 @@ const mockItems = [
     seller: { name: 'Tiina', apartment: 'A 2' },
     publishedAt: '2026-01-20',
     createdBy: null,
+    imageUrl: null,
   },
 ];
 
@@ -138,6 +148,7 @@ const createdItem = {
   seller: { name: 'Aino', apartment: 'A 12' },
   publishedAt: '2026-02-18',
   createdBy: 'u1',
+  imageUrl: null,
 };
 
 function setupFetchMock(): void {
@@ -340,4 +351,58 @@ describe('MarketplaceList', () => {
 
     expect(screen.getByText('Kuvaus on pakollinen')).toBeInTheDocument();
   });
+
+  it('renders image file input in create dialog', async () => {
+    const user = userEvent.setup();
+    await renderWithRouterContext(<MarketplaceList />);
+
+    await user.click(screen.getByText('Myy'));
+
+    expect(screen.getByLabelText('Tuotekuva')).toBeInTheDocument();
+  });
+
+  it('shows image preview after selecting a file', async () => {
+    const user = userEvent.setup();
+    await renderWithRouterContext(<MarketplaceList />);
+
+    await user.click(screen.getByText('Myy'));
+
+    const file = new File(['image-data'], 'test.jpg', { type: 'image/jpeg' });
+    const fileInput = screen.getByLabelText('Tuotekuva');
+    await user.upload(fileInput, file);
+
+    const preview = screen.getByAltText('Kuvan esikatselu');
+    expect(preview).toBeInTheDocument();
+  });
+
+  it('submits form with image as FormData', async () => {
+    const user = userEvent.setup();
+    await renderWithRouterContext(<MarketplaceList />);
+
+    await screen.findByText('Ikea Kallax -hylly, valkoinen');
+    await user.click(screen.getByText('Myy'));
+
+    const titleInput = screen.getByLabelText('Otsikko');
+    const descInput = screen.getByLabelText('Kuvaus');
+
+    await user.clear(titleInput);
+    await user.paste('Tuote kuvalla');
+    await user.clear(descInput);
+    await user.paste('Kuvaus');
+
+    const file = new File(['image-data'], 'test.jpg', { type: 'image/jpeg' });
+    const fileInput = screen.getByLabelText('Tuotekuva');
+    await user.upload(fileInput, file);
+
+    await user.click(screen.getByText('Julkaise'));
+
+    await waitFor(() => {
+      const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls;
+      const postCall = calls.find((call: unknown[]) => {
+        const init = call[1] as RequestInit | undefined;
+        return init?.method === 'POST' || init?.body instanceof FormData;
+      });
+      expect(postCall).toBeDefined();
+    });
+  }, 15000);
 });

@@ -486,6 +486,10 @@ void testI18n.use(initReactI18next).init({
           validationTitleRequired: 'Otsikko on pakollinen',
           validationDescriptionRequired: 'Kuvaus on pakollinen',
           validationPriceInvalid: 'Hinnan pitää olla vähintään 0',
+          itemImage: 'Tuotekuva',
+          imageTooLarge: 'Kuva on liian suuri (max 5 MB)',
+          imageInvalidType: 'Kuvatyyppi ei kelpaa (sallitut: JPEG, PNG, WebP)',
+          imagePreview: 'Kuvan esikatselu',
         },
         marketplaceCategories: {
           huonekalu: 'Huonekalu',
