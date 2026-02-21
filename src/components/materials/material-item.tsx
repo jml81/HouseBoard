@@ -84,9 +84,23 @@ export function MaterialItem({ material }: MaterialItemProps): React.JSX.Element
               </Button>
             </>
           )}
-          <Button variant="ghost" size="icon" className="size-8" title={t('materials.download')}>
-            <Download className="size-5" />
-          </Button>
+          {material.fileUrl ? (
+            <Button variant="ghost" size="icon" className="size-8" asChild>
+              <a href={material.fileUrl} download title={t('materials.download')}>
+                <Download className="size-5" />
+              </a>
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              disabled
+              title={t('materials.download')}
+            >
+              <Download className="size-5" />
+            </Button>
+          )}
         </div>
       </div>
 

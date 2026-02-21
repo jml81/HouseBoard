@@ -11,4 +11,5 @@ export interface Material {
   updatedAt: string; // ISO date string
   description: string;
   createdBy: string | null;
+  fileUrl: string | null;
 }

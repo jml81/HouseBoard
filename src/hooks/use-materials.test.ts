@@ -22,6 +22,7 @@ const mockMaterials = [
     updatedAt: '2025-09-15',
     description: 'Järjestyssäännöt.',
     createdBy: 'u2',
+    fileUrl: null,
   },
 ];
 
@@ -99,7 +100,7 @@ describe('useCreateMaterial', () => {
     vi.unstubAllGlobals();
   });
 
-  it('sends POST and returns created material', async () => {
+  it('sends POST with JSON when no file', async () => {
     const created = {
       id: 'new-1',
       name: 'Uusi dokumentti',
@@ -109,6 +110,7 @@ describe('useCreateMaterial', () => {
       updatedAt: '2026-02-21',
       description: 'Kuvaus',
       createdBy: 'u2',
+      fileUrl: null,
     };
     mockFetch(created);
 
@@ -134,6 +136,48 @@ describe('useCreateMaterial', () => {
         method: 'POST',
       }),
     );
+  });
+
+  it('sends POST with FormData when file provided', async () => {
+    const created = {
+      id: 'new-2',
+      name: 'Tiedostolla',
+      category: 'talous',
+      fileType: 'pdf',
+      fileSize: '1.2 MB',
+      updatedAt: '2026-02-21',
+      description: 'Kuvaus',
+      createdBy: 'u2',
+      fileUrl: '/api/files/materials/new-2.pdf',
+    };
+    mockFetch(created);
+
+    const testFile = new File(['test'], 'test.pdf', { type: 'application/pdf' });
+
+    const { result } = renderHook(() => useCreateMaterial(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      const response = await result.current.mutateAsync({
+        name: 'Tiedostolla',
+        category: 'talous',
+        fileType: 'pdf',
+        fileSize: '',
+        updatedAt: '2026-02-21',
+        description: 'Kuvaus',
+        file: testFile,
+      });
+      expect(response).toEqual(created);
+    });
+
+    // When file is provided, FormData is used (no Content-Type header)
+    const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls;
+    const postCall = calls.find((call: unknown[]) => {
+      const init = call[1] as RequestInit | undefined;
+      return init?.body instanceof FormData;
+    });
+    expect(postCall).toBeDefined();
   });
 });
 

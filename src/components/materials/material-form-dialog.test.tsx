@@ -14,6 +14,7 @@ const mockMaterial: Material = {
   updatedAt: '2025-09-15',
   description: 'Taloyhtiön järjestyssäännöt.',
   createdBy: 'u2',
+  fileUrl: '/api/files/materials/test.pdf',
 };
 
 function renderDialog(props?: { material?: Material }): {
@@ -32,22 +33,26 @@ describe('MaterialFormDialog', () => {
     vi.unstubAllGlobals();
   });
 
-  it('renders create mode with empty fields', () => {
+  it('renders create mode with empty fields and file input', () => {
     renderDialog();
     expect(screen.getByText('Uusi materiaali')).toBeInTheDocument();
     expect(screen.getByLabelText('Nimi')).toHaveValue('');
-    expect(screen.getByLabelText('Tiedostokoko')).toHaveValue('');
     expect(screen.getByLabelText('Päivämäärä')).toHaveValue('');
     expect(screen.getByLabelText('Kuvaus')).toHaveValue('');
+    expect(screen.getByLabelText('Tiedosto')).toBeInTheDocument();
   });
 
-  it('renders edit mode with pre-filled fields', () => {
+  it('renders edit mode with pre-filled fields and current file info', () => {
     renderDialog({ material: mockMaterial });
     expect(screen.getByText('Muokkaa materiaalia')).toBeInTheDocument();
     expect(screen.getByLabelText('Nimi')).toHaveValue('Järjestyssäännöt');
-    expect(screen.getByLabelText('Tiedostokoko')).toHaveValue('245 KB');
     expect(screen.getByLabelText('Päivämäärä')).toHaveValue('2025-09-15');
     expect(screen.getByLabelText('Kuvaus')).toHaveValue('Taloyhtiön järjestyssäännöt.');
+    expect(screen.getByText('Nykyinen tiedosto')).toBeInTheDocument();
+    expect(screen.getByText(/PDF/)).toBeInTheDocument();
+    expect(screen.getByText(/245 KB/)).toBeInTheDocument();
+    // File input should NOT be shown in edit mode
+    expect(screen.queryByLabelText('Tiedosto')).not.toBeInTheDocument();
   });
 
   it('shows submit button text for create mode', () => {
@@ -68,8 +73,7 @@ describe('MaterialFormDialog', () => {
 
     expect(await screen.findByText('Nimi on pakollinen')).toBeInTheDocument();
     expect(screen.getByText('Kategoria on pakollinen')).toBeInTheDocument();
-    expect(screen.getByText('Tiedostotyyppi on pakollinen')).toBeInTheDocument();
-    expect(screen.getByText('Tiedostokoko on pakollinen')).toBeInTheDocument();
+    expect(screen.getByText('Tiedosto on pakollinen')).toBeInTheDocument();
     expect(screen.getByText('Päivämäärä on pakollinen')).toBeInTheDocument();
     expect(screen.getByText('Kuvaus on pakollinen')).toBeInTheDocument();
   });
@@ -138,5 +142,10 @@ describe('MaterialFormDialog', () => {
   it('does not render form body when closed', () => {
     renderWithProviders(<MaterialFormDialog open={false} onOpenChange={vi.fn()} />);
     expect(screen.queryByLabelText('Nimi')).not.toBeInTheDocument();
+  });
+
+  it('shows file hint text in create mode', () => {
+    renderDialog();
+    expect(screen.getByText('PDF, DOCX tai XLSX, max 20 MB')).toBeInTheDocument();
   });
 });

@@ -94,6 +94,24 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 execute houseboard-db --remote --command "ALTER TABLE marketplace_items ADD COLUMN image_key TEXT;"
 
+      - name: D1 add meeting_documents file_key column (idempotent)
+        if: github.event_name == 'push'
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 execute houseboard-db --remote --command "ALTER TABLE meeting_documents ADD COLUMN file_key TEXT;"
+
+      - name: D1 add materials file_key column (idempotent)
+        if: github.event_name == 'push'
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 execute houseboard-db --remote --command "ALTER TABLE materials ADD COLUMN file_key TEXT;"
+
       # NOTE: seed.sql is NOT run in CI — use `pnpm db:seed:remote` manually when needed.
       # Smoke tests rely on demo users already existing in production D1.
 

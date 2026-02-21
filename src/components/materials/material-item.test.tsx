@@ -15,6 +15,7 @@ const mockMaterial: Material = {
   updatedAt: '2025-09-15',
   description: 'Taloyhtiön järjestyssäännöt.',
   createdBy: 'u2',
+  fileUrl: null,
 };
 
 describe('MaterialItem', () => {
@@ -101,8 +102,18 @@ describe('MaterialItem', () => {
     });
   });
 
-  it('renders download button', () => {
+  it('renders disabled download button when no fileUrl', () => {
     renderWithProviders(<MaterialItem material={mockMaterial} />);
-    expect(screen.getByTitle('Lataa')).toBeInTheDocument();
+    const downloadBtn = screen.getByTitle('Lataa');
+    expect(downloadBtn).toBeInTheDocument();
+    expect(downloadBtn).toBeDisabled();
+  });
+
+  it('renders download link when fileUrl present', () => {
+    const materialWithFile = { ...mockMaterial, fileUrl: '/api/files/materials/test.pdf' };
+    renderWithProviders(<MaterialItem material={materialWithFile} />);
+    const link = screen.getByTitle('Lataa');
+    expect(link).toBeInTheDocument();
+    expect(link.closest('a')).toHaveAttribute('href', '/api/files/materials/test.pdf');
   });
 });
