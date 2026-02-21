@@ -453,7 +453,7 @@ function toMarketplaceItemResponse(row: MarketplaceItemRow): MarketplaceItemResp
     category: row.category,
     condition: row.condition,
     status: row.status,
-    seller: { name: row.seller_name, apartment: row.seller_apartment },
+    seller: { name: row.seller_name.split(' ')[0] || row.seller_name, apartment: row.seller_apartment },
     publishedAt: row.published_at,
     createdBy: row.created_by,
   };
