@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Meeting, MeetingType, MeetingStatus } from '@/types';
-import { useCreateMeeting, useUpdateMeeting } from '@/hooks/use-meetings';
+import { useCreateMeeting, useUpdateMeeting, useUploadMeetingDocument } from '@/hooks/use-meetings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -80,6 +81,7 @@ function MeetingFormBody({ meeting, onOpenChange }: MeetingFormBodyProps): React
   const { t } = useTranslation();
   const createMeeting = useCreateMeeting();
   const updateMeeting = useUpdateMeeting();
+  const uploadDocument = useUploadMeetingDocument();
   const isEdit = Boolean(meeting);
 
   const [title, setTitle] = useState(meeting?.title ?? '');
@@ -90,6 +92,7 @@ function MeetingFormBody({ meeting, onOpenChange }: MeetingFormBodyProps): React
   const [endTime, setEndTime] = useState(meeting?.endTime ?? '');
   const [location, setLocation] = useState(meeting?.location ?? '');
   const [description, setDescription] = useState(meeting?.description ?? '');
+  const [file, setFile] = useState<File | null>(null);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   function validateForm(): FormErrors {
@@ -145,7 +148,7 @@ function MeetingFormBody({ meeting, onOpenChange }: MeetingFormBodyProps): React
         });
         toast.success(t('meetings.updateSuccess'));
       } else {
-        await createMeeting.mutateAsync({
+        const created = await createMeeting.mutateAsync({
           title: title.trim(),
           type,
           status,
@@ -156,6 +159,15 @@ function MeetingFormBody({ meeting, onOpenChange }: MeetingFormBodyProps): React
           description: description.trim(),
         });
         toast.success(t('meetings.createSuccess'));
+
+        if (file) {
+          try {
+            await uploadDocument.mutateAsync({ meetingId: created.id, file });
+            toast.success(t('meetings.documentUploadSuccess'));
+          } catch {
+            toast.error(t('meetings.documentUploadError'));
+          }
+        }
       }
       onOpenChange(false);
     } catch {
@@ -163,7 +175,7 @@ function MeetingFormBody({ meeting, onOpenChange }: MeetingFormBodyProps): React
     }
   }
 
-  const isPending = createMeeting.isPending || updateMeeting.isPending;
+  const isPending = createMeeting.isPending || updateMeeting.isPending || uploadDocument.isPending;
 
   return (
     <form
@@ -177,14 +189,14 @@ function MeetingFormBody({ meeting, onOpenChange }: MeetingFormBodyProps): React
           <Input id="meeting-title" value={title} onChange={(e) => setTitle(e.target.value)} />
           {formErrors.title && <p className="text-sm text-destructive">{formErrors.title}</p>}
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="meeting-type">{t('meetings.formType')}</Label>
             <Select value={type} onValueChange={(v) => setType(v as MeetingType)}>
               <SelectTrigger id="meeting-type">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 {MEETING_TYPES.map((mt) => (
                   <SelectItem key={mt} value={mt}>
                     {t(`meetingTypes.${mt}`)}
@@ -200,7 +212,7 @@ function MeetingFormBody({ meeting, onOpenChange }: MeetingFormBodyProps): React
               <SelectTrigger id="meeting-status">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 {MEETING_STATUSES.map((ms) => (
                   <SelectItem key={ms} value={ms}>
                     {t(`meetings.${ms}`)}
@@ -211,18 +223,16 @@ function MeetingFormBody({ meeting, onOpenChange }: MeetingFormBodyProps): React
             {formErrors.status && <p className="text-sm text-destructive">{formErrors.status}</p>}
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="meeting-date">{t('meetings.formDate')}</Label>
-            <Input
-              id="meeting-date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-            {formErrors.date && <p className="text-sm text-destructive">{formErrors.date}</p>}
-          </div>
-          <div />
+        <div className="space-y-2">
+          <Label htmlFor="meeting-date">{t('meetings.formDate')}</Label>
+          <Input
+            id="meeting-date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="max-w-xs"
+          />
+          {formErrors.date && <p className="text-sm text-destructive">{formErrors.date}</p>}
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -269,6 +279,27 @@ function MeetingFormBody({ meeting, onOpenChange }: MeetingFormBodyProps): React
             <p className="text-sm text-destructive">{formErrors.description}</p>
           )}
         </div>
+        {!isEdit && (
+          <div className="space-y-2">
+            <Label htmlFor="meeting-file">{t('meetings.formDocument')}</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="meeting-file"
+                type="file"
+                accept=".pdf,.docx,.xlsx"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                className="text-sm"
+              />
+              {uploadDocument.isPending && (
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  <Upload className="mr-1 inline size-3" />
+                  {t('meetings.uploadDocument')}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">{t('meetings.formDocumentHint')}</p>
+          </div>
+        )}
       </div>
       <DialogFooter className="mt-6">
         <Button

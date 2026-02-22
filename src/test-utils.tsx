@@ -311,6 +311,9 @@ void testI18n.use(initReactI18next).init({
           validationEndAfterStart: 'Loppuajan pitää olla alkuajan jälkeen',
           validationLocationRequired: 'Paikka on pakollinen',
           validationDescriptionRequired: 'Kuvaus on pakollinen',
+          formDocument: 'Asiakirja (valinnainen)',
+          formDocumentHint:
+            'PDF, DOCX tai XLSX, max 20 MB. Voit lisätä lisää tiedostoja kokouksen luomisen jälkeen.',
         },
         board: {
           title: 'Hallitus',
