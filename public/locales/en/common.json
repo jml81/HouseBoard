@@ -286,7 +286,9 @@
     "validationEndTimeRequired": "End time is required",
     "validationEndAfterStart": "End time must be after start time",
     "validationLocationRequired": "Location is required",
-    "validationDescriptionRequired": "Description is required"
+    "validationDescriptionRequired": "Description is required",
+    "formDocument": "Document (optional)",
+    "formDocumentHint": "PDF, DOCX or XLSX, max 20 MB. You can add more files after creating the meeting."
   },
   "board": {
     "title": "Board",
