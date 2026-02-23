@@ -159,10 +159,15 @@ jobs:
           echo "$BUILDING" | grep -q '"name"' || { echo "FAIL: /api/building"; exit 1; }
           echo "OK: $BUILDING"
 
-          echo "Testing 401 without token..."
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://houseboard.pages.dev/api/announcements)
+          echo "Testing public display endpoints (no auth)..."
+          ANON_BUILDING=$(curl -sf https://houseboard.pages.dev/api/building)
+          echo "$ANON_BUILDING" | grep -q '"name"' || { echo "FAIL: /api/building without auth"; exit 1; }
+          echo "OK: /api/building accessible without auth (display/kiosk)"
+
+          echo "Testing 401 without token on protected endpoint..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://houseboard.pages.dev/api/users)
           [ "$STATUS" = "401" ] || { echo "FAIL: expected 401, got $STATUS"; exit 1; }
-          echo "OK: unauthenticated request returns 401"
+          echo "OK: unauthenticated request to /api/users returns 401"
 
           echo "Testing / (HTML, no auth for static assets)..."
           HTML=$(curl -sf https://houseboard.pages.dev/)
