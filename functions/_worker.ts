@@ -787,10 +787,18 @@ app.post('/api/auth/reset-password', async (c) => {
 
 // --- JWT authentication middleware (all routes below) ---
 
+// Public GET endpoints for display/kiosk page (no auth required)
+const PUBLIC_GET_PATHS = new Set(['/api/building', '/api/bookings', '/api/announcements', '/api/events']);
+
 app.use('/api/*', async (c: Context<{ Bindings: Env; Variables: Variables }>, next: Next) => {
   // Skip auth endpoints and health check
   const path = new URL(c.req.url).pathname;
   if (path === '/api/health' || path.startsWith('/api/auth/') || path.startsWith('/api/files/')) {
+    return next();
+  }
+
+  // Skip auth for public read-only endpoints (display/kiosk page)
+  if (c.req.method === 'GET' && PUBLIC_GET_PATHS.has(path)) {
     return next();
   }
 
